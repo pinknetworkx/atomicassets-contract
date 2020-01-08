@@ -369,9 +369,9 @@ Attribute buildRootAttribute(const vector<string>& format) {
 
         string name = linejson["name"];
         string type = linejson["type"];
-        uint64_t parentobject = linejson["parentobject"];
+        uint64_t parent = linejson["parent"];
 
-        Attribute *parent_attribute = object_attributes[parentobject];
+        Attribute *parent_attribute = object_attributes[parent];
         Attribute *child_attribute = new Attribute(parent_attribute->children.size(), name, type);
         parent_attribute->children.push_back(child_attribute);
         if (isObjectType(type)) {

@@ -9,7 +9,7 @@ using namespace std;
 This function checks if a vector of lines, used to describe a format, is valid
 
 Each line must be a valid json string, following this format:
-{"name": "<myname>", "type": "<mytype>", "parentobject": <mynumber>}
+{"name": "<myname>", "type": "<mytype>", "parent": <mynumber>}
 
 For a format to be vlaid, three things are checked:
 1. The type attribute has to be a valid type. Valid types are:
@@ -23,28 +23,28 @@ For a format to be vlaid, three things are checked:
     or any valid type followed by [] to describe an array
     nested arrays (e.g. uint64[][][]) are allowed
 
-2. The parentobject referenced has to have been defined in a previous line
+2. The parent referenced has to have been defined in a previous line
     e.g. INVALID:
-    {"name": "testattribute", "type": "string", "parentobject": 1}
-    {"name": "testobject", "type": "object{1}", "parentobject": 0}
+    {"name": "testattribute", "type": "string", "parent": 1}
+    {"name": "testobject", "type": "object{1}", "parent": 0}
 
     e.g. VALID:
-    {"name": "testobject", "type": "object{1}", "parentobject": 0}
-    {"name": "testattribute", "type": "string", "parentobject": 1}
+    {"name": "testobject", "type": "object{1}", "parent": 0}
+    {"name": "testattribute", "type": "string", "parent": 1}
 
-3. Names need to be unique within any given parentobject
+3. Names need to be unique within any given parent
     e.g. INVALID:
-    {"name": "testattribute", "type": "string", "parentobject": 0}
-    {"name": "testattribute", "type": "string", "parentobject": 0}
+    {"name": "testattribute", "type": "string", "parent": 0}
+    {"name": "testattribute", "type": "string", "parent": 0}
 
     e.g. VALID:
-    {"name": "testattribute", "type": "string", "parentobject": 0}
-    {"name": "otherattribute", "type": "string", "parentobject": 0}
+    {"name": "testattribute", "type": "string", "parent": 0}
+    {"name": "otherattribute", "type": "string", "parent": 0}
 
     e.g. VALID:
-    {"name": "testattribute", "type": "string", "parentobject": 0}
-    {"name": "testobject", "type": "object{1}", "parentobject": 0}
-    {"name": "testattribute", "type": "string", "parentobject": 1}
+    {"name": "testattribute", "type": "string", "parent": 0}
+    {"name": "testobject", "type": "object{1}", "parent": 0}
+    {"name": "testattribute", "type": "string", "parent": 1}
 
 
 Note: This could all be done a lot cleaner by using regex or similar libraries
@@ -64,12 +64,12 @@ void check_format(vector<string> lines) {
         "'name' attribute either not provided or wrong type - " + line);
         check(linejson["type"].is_string(),
         "'type' attribute either not provided or wrong type - " + line);
-        check(linejson["parentobject"].is_number(),
-        "'parentobject' attribute either not provided or wrong type - " + line);
+        check(linejson["parent"].is_number(),
+        "'parent' attribute either not provided or wrong type - " + line);
 
         string name = linejson["name"];
         string type = linejson["type"];
-        uint64_t parentobject = linejson["parentobject"];
+        uint64_t parent = linejson["parent"];
 
         size_t offset = 0;
         bool is_object = false;
@@ -128,12 +128,12 @@ void check_format(vector<string> lines) {
             object_attribute_map[object_number] = {};
         }
 
-        check(object_attribute_map.find(parentobject) != object_attribute_map.end(),
-                "parentobject has not been defined - " + line);
+        check(object_attribute_map.find(parent) != object_attribute_map.end(),
+                "parent has not been defined - " + line);
 
-        vector<string>& parent_attributes = object_attribute_map[parentobject];
+        vector<string>& parent_attributes = object_attribute_map[parent];
         check(std::find(parent_attributes.begin(), parent_attributes.end(), name) == parent_attributes.end(),
-                "the parentobject already has an attribute with the same name - " + line);
+                "the parent already has an attribute with the same name - " + line);
 
         parent_attributes.push_back(name);
     }
