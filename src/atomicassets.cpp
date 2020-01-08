@@ -311,8 +311,8 @@ ACTION atomicassets::createpre(
     _preset.collection = collection;
     _preset.transferable = transferable;
     _preset.burnable = burnable;
-    _preset.max_supply = max_supply == 0 ? *(new vector<uint8_t>) : intToByteVector(max_supply);
-    _preset.circulating_supply = max_supply == 0 ? *(new vector<uint8_t>) : intToByteVector(0);
+    _preset.max_supply = max_supply == 0 ? *(new vector<uint8_t>) : int_to_byte_vector(max_supply);
+    _preset.issued_supply = max_supply == 0 ? *(new vector<uint8_t>) : int_to_byte_vector(0);
     _preset.immutable_serialized_data = serialize(json_immutable_data, scheme_itr->format);
     _preset.mutable_serialized_data = serialize(json_mutable_data, scheme_itr->format);
   });
@@ -394,11 +394,11 @@ ACTION atomicassets::mintasset(
   "The minter is not authorized within the collection");
 
   if (preset_itr->max_supply.begin() != preset_itr->max_supply.end()) {
-    uint64_t max_supply = byteVectorToInt(preset_itr->max_supply);
-    uint64_t circulating_supply = byteVectorToInt(preset_itr->circulating_supply);
-    check (circulating_supply < max_supply, "preset maxsupply has already been reached");
+    uint64_t max_supply = byte_vector_to_int(preset_itr->max_supply);
+    uint64_t issued_supply = byte_vector_to_int(preset_itr->issued_supply);
+    check (issued_supply < max_supply, "preset maxsupply has already been reached");
     presets.modify(preset_itr, authorized_minter, [&](auto& _preset) {
-      _preset.circulating_supply = intToByteVector(circulating_supply + 1);
+      _preset.issued_supply = int_to_byte_vector(issued_supply + 1);
     });
   }
 
@@ -406,7 +406,7 @@ ACTION atomicassets::mintasset(
   auto current_config = config.get();
   uint64_t asset_id = current_config.asset_counter++;
 
-  assets_t new_owner_assets = getAssets(new_owner);
+  assets_t new_owner_assets = get_assets(new_owner);
   new_owner_assets.emplace(authorized_minter, [&](auto& _asset) {
     _asset.id = asset_id;
     _asset.preset_id = preset_id;
@@ -440,7 +440,7 @@ ACTION atomicassets::editasstdata (
 ) {
   require_auth(authorized_editor);
 
-  assets_t owner_assets = getAssets(owner);
+  assets_t owner_assets = get_assets(owner);
 
   auto asset_itr = owner_assets.require_find(asset_id,
   "No asset with this id exists");
@@ -480,21 +480,13 @@ ACTION atomicassets::burnasset(
 ) {
   require_auth(owner);
 
-  assets_t owner_assets = getAssets(owner);
+  assets_t owner_assets = get_assets(owner);
   auto asset_itr = owner_assets.require_find(asset_id,
   "No asset with this id exists");
 
   auto preset_itr = presets.find(asset_itr->preset_id);
   check (preset_itr->burnable,
   "The asset is not burnable");
-
-  if (preset_itr->max_supply.begin() != preset_itr->max_supply.end()) {
-    uint64_t max_supply = byteVectorToInt(preset_itr->max_supply);
-    uint64_t circulating_supply = byteVectorToInt(preset_itr->circulating_supply);
-    presets.modify(preset_itr, same_payer, [&](auto& _preset) {
-      _preset.circulating_supply = intToByteVector(circulating_supply - 1);
-    });
-  }
 
   if (asset_itr->backed_core_tokens.amount != 0) {
     action(
@@ -540,8 +532,8 @@ ACTION atomicassets::createoffer(
   check(sender_asset_ids.size() != 0 || recipient_asset_ids.size() != 0,
   "Can't create an empty offer"); 
 
-  assets_t sender_assets = getAssets(sender);
-  assets_t recipient_assets = getAssets(recipient);
+  assets_t sender_assets = get_assets(sender);
+  assets_t recipient_assets = get_assets(recipient);
 
   for (uint64_t asset_id : sender_asset_ids) {
     auto asset_itr = sender_assets.require_find(asset_id,
@@ -608,8 +600,8 @@ ACTION atomicassets::acceptoffer(
   check(item_recipient != offer_itr->offer_sender,
   "item_recipient can't be the offer sender");
 
-  assets_t sender_assets = getAssets(offer_itr->offer_sender);
-  assets_t recipient_assets = getAssets(offer_itr->offer_recipient);
+  assets_t sender_assets = get_assets(offer_itr->offer_sender);
+  assets_t recipient_assets = get_assets(offer_itr->offer_recipient);
   for (uint64_t asset_id : offer_itr->sender_asset_ids) {
     sender_assets.require_find(asset_id,
     ("Offer sender doesn't own at least one of the provided assets (ID: " + to_string(asset_id) + ")").c_str());
@@ -663,12 +655,12 @@ ACTION atomicassets::declineoffer(
 *  It handles potential back_asset transfers, which back an asset with tokens which can only be
    released by burning the token, thus giving the token a guranteed value
 */
-void atomicassets::receivewaxtransfer(name from, name to, asset quantity, string memo) {
+void atomicassets::receive_token_transfer(name from, name to, asset quantity, string memo) {
   if (to != _self) {
     return;
   }
   check(quantity.symbol == CORE_SYMBOL,
-  "quantity must be in WAX");
+  "quantity must be the Core symbol");
 
   if (memo.find("back_asset ") == 0) {
     //Format: "back_asset <account name> <assetid>"
@@ -679,7 +671,7 @@ void atomicassets::receivewaxtransfer(name from, name to, asset quantity, string
     name account = name(account_str);
     uint64_t asset_id = stoll(id_str);
 
-    assets_t account_assets = getAssets(account);
+    assets_t account_assets = get_assets(account);
     auto asset_itr = account_assets.require_find(asset_id,
     "The account does not own an asset with this id");
 
@@ -765,7 +757,7 @@ ACTION atomicassets::logbackasset(
 ) {
   require_auth(get_self());
 
-  assets_t owner_assets = getAssets(owner);
+  assets_t owner_assets = get_assets(owner);
   auto asset_itr = owner_assets.find(asset_id);
   auto preset_itr = presets.find(asset_itr->preset_id);
   auto collection_itr = collections.find(preset_itr->collection.value);
@@ -800,8 +792,8 @@ void atomicassets::internal_transfer(
 
   check(asset_ids.size() != 0, "asset_ids needs to contain at least one id");
 
-  assets_t from_assets = getAssets(from);
-  assets_t to_assets = getAssets(to);
+  assets_t from_assets = get_assets(from);
+  assets_t to_assets = get_assets(to);
 
   map<name, vector<uint64_t>> collection_to_assets_transferred = {};
 
@@ -868,12 +860,12 @@ void atomicassets::internal_transfer(
 
 
 
-atomicassets::assets_t atomicassets::getAssets(name acc) {
+atomicassets::assets_t atomicassets::get_assets(name acc) {
   return assets_t(get_self(), acc.value);
 }
 
 
-vector<uint8_t> atomicassets::intToByteVector(uint64_t number) {
+vector<uint8_t> atomicassets::int_to_byte_vector(uint64_t number) {
   vector<uint8_t> bytes = {};
   while (number != 0) {
     bytes.push_back((uint8_t) number % 256);
@@ -883,7 +875,7 @@ vector<uint8_t> atomicassets::intToByteVector(uint64_t number) {
 }
 
 
-uint64_t atomicassets::byteVectorToInt(vector<uint8_t> bytes) {
+uint64_t atomicassets::byte_vector_to_int(vector<uint8_t> bytes) {
   uint64_t number = 0;
   uint64_t multiplier = 1;
   for (const auto& byte_val : bytes) {

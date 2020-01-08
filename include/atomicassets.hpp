@@ -159,7 +159,7 @@ CONTRACT atomicassets : public contract {
       uint64_t offer_id
     );
 
-    [[eosio::on_notify("eosio.token::transfer")]] void receivewaxtransfer(name from, name to, asset quantity, string memo);
+    [[eosio::on_notify("eosio.token::transfer")]] void receive_token_transfer(name from, name to, asset quantity, string memo);
     
 
 
@@ -226,7 +226,7 @@ CONTRACT atomicassets : public contract {
       bool                transferable;
       bool                burnable;
       vector<uint8_t>     max_supply;
-      vector<uint8_t>     circulating_supply;
+      vector<uint8_t>     issued_supply;
       vector<uint8_t>     immutable_serialized_data;
       vector<uint8_t>     mutable_serialized_data;
 
@@ -290,9 +290,9 @@ CONTRACT atomicassets : public contract {
       name scope_payer
     );
 
-    assets_t getAssets(name acc);
+    assets_t get_assets(name acc);
 
-    vector<uint8_t> intToByteVector(uint64_t number);
+    vector<uint8_t> int_to_byte_vector(uint64_t number);
 
-    uint64_t byteVectorToInt(vector<uint8_t> bytes);
+    uint64_t byte_vector_to_int(vector<uint8_t> bytes);
 };
