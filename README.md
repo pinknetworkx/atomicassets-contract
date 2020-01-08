@@ -1,6 +1,8 @@
 # atomicassets
 atomicassets is a Non Fungible Token (NFT) standard for eosio blockchains developed by [pink.network](pink.network).
-## key features
+
+It is work in progress and is currently deployed under the name **atomicassets** on the WAX testnet.
+## Key Features
 
 - **Presets**
 	Assets have presets, which can store data themselves. This allows you to group similar assets together and means that you can save RAM by not having to store the same data for each asset individually.
@@ -13,7 +15,7 @@ atomicassets is a Non Fungible Token (NFT) standard for eosio blockchains develo
 	This also means that atomicassets works completely **without claims**. Transfers are instant and no further user action is required.
 	
 - **Minimal fixed RAM costs**
-	Creating an asset only costs **142 bytes** (112 of which are for the necessary index). Additionally, each token owner needs to have a scope, which costs another **112 bytes**. 
+	Creating an asset only costs **142 bytes** (112 of which are for the necessary index). Additionally, each token owner needs to have a scope, which costs **112 bytes**. 
 	
 - **Notifications for Smart Contracts**
 	Smart Contracts can get notified automatically about any relevant events related to their assets. This enables them to make the assets an integral part of their game rather than just a static token.
