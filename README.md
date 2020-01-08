@@ -6,7 +6,7 @@ It is work in progress and is currently deployed under the name **atomicassets**
 
 - **Presets**
 
-	Assets have presets, which can store data themselves. This allows you to group similar assets together and means that you can save RAM by not having to store the same data for each asset individually.
+	Assets have presets, which can store data themselves. This allows grouping similar assets together and means that you can save RAM by not having to store the same data for each asset individually.
 	
 - **Data Serialization**
 
@@ -30,5 +30,6 @@ It is work in progress and is currently deployed under the name **atomicassets**
 	Assets can be backed by the respective core token of their network (e.g. EOS/ WAX). Those tokens can only be freed by burning the asset, thus allowing dapps to give their asset a guaranteed intrinsic value.
 	
 - **Powerful Trade Offers**
+
 	AtomicAssets features a native implementation of two sided trade offers (similar to Steam or WAX Express Trade). This allows creating and accepting offers **with a single action**.
 	The implementation of the offers also allows for **peer to peer marketplaces** that don't require transferring ownership to a market contract.
