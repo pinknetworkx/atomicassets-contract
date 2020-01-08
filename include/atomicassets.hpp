@@ -10,7 +10,7 @@ Nofification Receipts for notify_accounts in a collection
 
 
 ACTION logtransfer(
-  name collection,
+  name collection_name,
   name from,
   name to,
   vector<uint64_t> asset_ids,
@@ -40,7 +40,7 @@ ACTION lognewpreset(
   uint32_t preset_id;
   name authorized_creator,
   name scheme_name,
-  name collection,
+  name collection_name,
   bool transferable,
   bool burnable,
   uint64_t max_supply,
@@ -111,7 +111,7 @@ CONTRACT atomicassets : public contract {
     ACTION createpre(
       name authorized_creator,
       name scheme_name,
-      name collection,
+      name collection_name,
       bool transferable,
       bool burnable,
       uint64_t max_supply,
@@ -164,7 +164,7 @@ CONTRACT atomicassets : public contract {
 
 
     ACTION logtransfer(
-      name collection,
+      name collection_name,
       name from,
       name to,
       vector<uint64_t> asset_ids,
@@ -175,7 +175,7 @@ CONTRACT atomicassets : public contract {
       uint32_t preset_id,
       name authorized_creator,
       name scheme_name,
-      name collection,
+      name collection_name,
       bool transferable,
       bool burnable,
       uint64_t max_supply,
@@ -222,7 +222,7 @@ CONTRACT atomicassets : public contract {
     TABLE presets_s {
       uint32_t            id;
       name                scheme_name;
-      name                collection;
+      name                collection_name;
       bool                transferable;
       bool                burnable;
       vector<uint8_t>     max_supply;

@@ -283,7 +283,7 @@ ACTION atomicassets::remnotifyacc(
 ACTION atomicassets::createpre(
   name authorized_creator,
   name scheme_name,
-  name collection,
+  name collection_name,
   bool transferable,
   bool burnable,
   uint64_t max_supply,
@@ -294,7 +294,7 @@ ACTION atomicassets::createpre(
 
   auto scheme_itr = schemes.require_find(scheme_name.value,
   "No scheme with this name exists");
-  auto collection_itr = collections.require_find(collection.value,
+  auto collection_itr = collections.require_find(collection_name.value,
   "No collection with this name exists");
 
   check(std::find(
@@ -308,7 +308,7 @@ ACTION atomicassets::createpre(
   presets.emplace(authorized_creator, [&](auto& _preset) {
     _preset.id = preset_id;
     _preset.scheme_name = scheme_name;
-    _preset.collection = collection;
+    _preset.collection_name = collection_name;
     _preset.transferable = transferable;
     _preset.burnable = burnable;
     _preset.max_supply = max_supply == 0 ? *(new vector<uint8_t>) : int_to_byte_vector(max_supply);
@@ -325,7 +325,7 @@ ACTION atomicassets::createpre(
       preset_id,
       authorized_creator,
       scheme_name,
-      collection,
+      collection_name,
       transferable,
       burnable,
       max_supply,
@@ -350,7 +350,7 @@ ACTION atomicassets::editpredata(
   auto preset_itr = presets.require_find((uint64_t) preset_id,
   "No preset with this id exists");
 
-  auto collection_itr = collections.find(preset_itr->collection.value);
+  auto collection_itr = collections.find(preset_itr->collection_name.value);
   check(std::find(
     collection_itr->authorized_accounts.begin(),
     collection_itr->authorized_accounts.end(),
@@ -385,7 +385,7 @@ ACTION atomicassets::mintasset(
   auto preset_itr = presets.require_find(preset_id,
   "No preset with this id exists");
 
-  auto collection_itr = collections.find(preset_itr->collection.value);
+  auto collection_itr = collections.find(preset_itr->collection_name.value);
   check(std::find(
     collection_itr->authorized_accounts.begin(),
     collection_itr->authorized_accounts.end(),
@@ -447,7 +447,7 @@ ACTION atomicassets::editasstdata (
 
   auto preset_itr = presets.find(asset_itr->preset_id);
 
-  auto collection_itr = collections.find(preset_itr->collection.value);
+  auto collection_itr = collections.find(preset_itr->collection_name.value);
   check(std::find(
     collection_itr->authorized_accounts.begin(),
     collection_itr->authorized_accounts.end(),
@@ -505,7 +505,7 @@ ACTION atomicassets::burnasset(
   owner_assets.erase(asset_itr);
 
 
-  auto collection_itr = collections.find(preset_itr->collection.value);
+  auto collection_itr = collections.find(preset_itr->collection_name.value);
   for (const name& notify_account : collection_itr->notify_accounts) {
     require_recipient(notify_account);
   }
@@ -698,7 +698,7 @@ void atomicassets::receive_token_transfer(name from, name to, asset quantity, st
 
 
 ACTION atomicassets::logtransfer(
-  name collection,
+  name collection_name,
   name from,
   name to,
   vector<uint64_t> asset_ids,
@@ -707,7 +707,7 @@ ACTION atomicassets::logtransfer(
 ) {
   require_auth(get_self());
 
-  auto collection_itr = collections.find(collection.value);
+  auto collection_itr = collections.find(collection_name.value);
   for (const name& notify_account : collection_itr->notify_accounts) {
     require_recipient(notify_account);
   }
@@ -718,7 +718,7 @@ ACTION atomicassets::lognewpreset(
   uint32_t preset_id,
   name authorized_creator,
   name scheme_name,
-  name collection,
+  name collection_name,
   bool transferable,
   bool burnable,
   uint64_t max_supply,
@@ -727,7 +727,7 @@ ACTION atomicassets::lognewpreset(
 ) {
   require_auth(get_self());
 
-  auto collection_itr = collections.find(collection.value);
+  auto collection_itr = collections.find(collection_name.value);
   for (const name& notify_account : collection_itr->notify_accounts) {
     require_recipient(notify_account);
   }
@@ -743,7 +743,7 @@ ACTION atomicassets::logmint(
   require_auth(get_self());
 
   auto preset_itr = presets.find(preset_id);
-  auto collection_itr = collections.find(preset_itr->collection.value);
+  auto collection_itr = collections.find(preset_itr->collection_name.value);
   for (const name& notify_account : collection_itr->notify_accounts) {
     require_recipient(notify_account);
   }
@@ -760,7 +760,7 @@ ACTION atomicassets::logbackasset(
   assets_t owner_assets = get_assets(owner);
   auto asset_itr = owner_assets.find(asset_id);
   auto preset_itr = presets.find(asset_itr->preset_id);
-  auto collection_itr = collections.find(preset_itr->collection.value);
+  auto collection_itr = collections.find(preset_itr->collection_name.value);
   for (const name& notify_account : collection_itr->notify_accounts) {
     require_recipient(notify_account);
   }
@@ -807,10 +807,10 @@ void atomicassets::internal_transfer(
     ("At least one asset isn't transferable (ID: " + to_string(asset_id) + ")").c_str());
 
     //This is needed for sending noficiations later
-    if (collection_to_assets_transferred.find(preset_itr->collection) != collection_to_assets_transferred.end()) {
-      collection_to_assets_transferred[preset_itr->collection].push_back(asset_id);
+    if (collection_to_assets_transferred.find(preset_itr->collection_name) != collection_to_assets_transferred.end()) {
+      collection_to_assets_transferred[preset_itr->collection_name].push_back(asset_id);
     } else {
-      collection_to_assets_transferred[preset_itr->collection] = {asset_id};
+      collection_to_assets_transferred[preset_itr->collection_name] = {asset_id};
     }
 
     //to assets are empty => no scope has been created yet
