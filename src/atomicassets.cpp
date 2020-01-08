@@ -880,7 +880,7 @@ uint64_t atomicassets::byte_vector_to_int(vector<uint8_t> bytes) {
   uint64_t multiplier = 1;
   for (const auto& byte_val : bytes) {
     number += ((uint64_t) byte_val) * multiplier;
-    multiplier *= 16;
+    multiplier *= 256;
   }
   return number;
 }
