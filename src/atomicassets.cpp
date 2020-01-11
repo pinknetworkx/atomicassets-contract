@@ -520,7 +520,8 @@ ACTION atomicassets::createoffer(
   name sender,
   name recipient,
   vector<uint64_t> sender_asset_ids,
-  vector<uint64_t> recipient_asset_ids
+  vector<uint64_t> recipient_asset_ids,
+  string memo
 ) {
   require_auth(sender);
 
@@ -557,6 +558,7 @@ ACTION atomicassets::createoffer(
     _offer.offer_recipient = recipient;
     _offer.sender_asset_ids = sender_asset_ids;
     _offer.recipient_asset_ids = recipient_asset_ids;
+    _offer.memo = memo;
   });
 
   config.set(current_config, get_self());

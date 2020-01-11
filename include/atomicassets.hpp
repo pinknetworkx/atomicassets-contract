@@ -146,7 +146,8 @@ CONTRACT atomicassets : public contract {
       name sender,
       name recipient,
       vector<uint64_t> sender_asset_ids,
-      vector<uint64_t> recipient_asset_ids
+      vector<uint64_t> recipient_asset_ids,
+      string memo
     );
     ACTION canceloffer(
       uint64_t offer_id
@@ -254,6 +255,7 @@ CONTRACT atomicassets : public contract {
       name                offer_recipient;
       vector<uint64_t>    sender_asset_ids;
       vector<uint64_t>    recipient_asset_ids;
+      string              memo;
 
       uint64_t primary_key() const { return id; };
       uint64_t by_sender() const { return offer_sender.value; };
