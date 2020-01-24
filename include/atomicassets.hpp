@@ -62,6 +62,7 @@ CONTRACT atomicassets : public contract {
 
     ACTION init();
     ACTION admincoledit(vector<string> collection_format_extension);
+    ACTION setversion(string new_version);
 
     ACTION transfer(
       name from,
@@ -275,6 +276,12 @@ CONTRACT atomicassets : public contract {
     // https://github.com/EOSIO/eosio.cdt/issues/280
     typedef multi_index<name("config"), config_s> config_t_for_abi;
 
+    TABLE tokenconfigs_s {
+      name           standard = name("atomicassets");
+      std::string    version = string("beta");
+    };
+    typedef singleton<name("tokenconfigs"), tokenconfigs_s> tokenconfigs_t;
+
 
 
     schemes_t schemes = schemes_t(get_self(), get_self().value);
@@ -282,6 +289,7 @@ CONTRACT atomicassets : public contract {
     presets_t presets = presets_t(get_self(), get_self().value);
     offers_t offers = offers_t(get_self(), get_self().value);
     config_t config = config_t(get_self(), get_self().value);
+    tokenconfigs_t tokenconfigs = tokenconfigs_t(get_self(), get_self().value);
 
     
     void internal_transfer(

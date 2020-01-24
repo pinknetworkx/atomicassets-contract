@@ -13,6 +13,7 @@ static constexpr uint64_t MAX_ID = 18446744073709551615;
 ACTION atomicassets::init() {
   require_auth(get_self());
   config.get_or_create(get_self(),config_s{});
+  tokenconfigs.get_or_create(get_self(), tokenconfigs_s{});
 }
 
 /**
@@ -33,6 +34,16 @@ ACTION atomicassets::admincoledit(vector<string> collection_format_extension) {
   check_format(current_config.collection_format);
   
   config.set(current_config, get_self());
+}
+
+
+ACTION atomicassets::setversion(string new_version) {
+  require_auth(get_self());
+
+  auto current_tokenconfigs = tokenconfigs.get();
+  current_tokenconfigs.version = new_version;
+  
+  tokenconfigs.set(current_tokenconfigs, get_self());
 }
 
 
