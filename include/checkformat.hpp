@@ -74,7 +74,7 @@ void check_format(vector<FORMAT> lines) {
         check(offset == type.length(), "'type' attribute has an invalid format - " + line.type);
 
         check(std::find(attribute_names.begin(), attribute_names.end(), name) == attribute_names.end(),
-                "there already is an attribute with the same name - " + line.type);
+                "there already is an attribute with the same name - " + line.name);
 
         attribute_names.push_back(name);
     }
