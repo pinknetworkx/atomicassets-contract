@@ -2,8 +2,12 @@
 #include <eosio/singleton.hpp>
 #include <eosio/asset.hpp>
 
+#include <checkformat.hpp>
+#include <atomicdata.hpp>
+
 using namespace eosio;
 using namespace std;
+using namespace atomicdata;
 
 /*  
 Nofification Receipts for notify_accounts in a collection
@@ -44,8 +48,8 @@ ACTION lognewpreset(
   bool transferable,
   bool burnable,
   uint64_t max_supply,
-  string json_immutable_data,
-  string json_mutable_data
+  ATTRIBUTE_MAP immutable_data,
+  ATTRIBUTE_MAP mutable_data
 );
 
 ACTION logbackasset(
@@ -61,7 +65,7 @@ CONTRACT atomicassets : public contract {
     using contract::contract;
 
     ACTION init();
-    ACTION admincoledit(vector<string> collection_format_extension);
+    ACTION admincoledit(vector<FORMAT> collection_format_extension);
     ACTION setversion(string new_version);
 
     ACTION transfer(
@@ -74,11 +78,11 @@ CONTRACT atomicassets : public contract {
     ACTION createscheme(
       name author,
       name scheme_name,
-      vector<string> scheme_format
+      vector<FORMAT> scheme_format
     );
     ACTION extendscheme(
       name scheme_name,
-      vector<string> scheme_format_extension
+      vector<FORMAT> scheme_format_extension
     );
     
     ACTION createcol(
@@ -86,11 +90,11 @@ CONTRACT atomicassets : public contract {
       name author,
       vector<name> authorized_accounts,
       vector<name> notify_accounts,
-      string json_data
+      ATTRIBUTE_MAP data
     );
     ACTION setcoldata(
       name collection_name,
-      string json_data
+      ATTRIBUTE_MAP data
     );
     ACTION addcolauth(
       name collection_name,
@@ -116,27 +120,27 @@ CONTRACT atomicassets : public contract {
       bool transferable,
       bool burnable,
       uint64_t max_supply,
-      string json_immutable_data,
-      string json_mutable_data
+      ATTRIBUTE_MAP immutable_data,
+      ATTRIBUTE_MAP mutable_data
     );
     ACTION editpredata(
       name authorized_editor,
       uint32_t preset_id,
-      string json_new_mutable_data
+      ATTRIBUTE_MAP new_mutable_data
     );
 
     ACTION mintasset(
       name authorized_minter,
       uint32_t preset_id,
       name new_owner,
-      string json_immutable_data,
-      string json_mutable_data
+      ATTRIBUTE_MAP immutable_data,
+      ATTRIBUTE_MAP mutable_data
     );
     ACTION editasstdata (
       name authorized_editor,
       name owner,
       uint64_t asset_id,
-      string json_new_mutable_data
+      ATTRIBUTE_MAP new_mutable_data
     );
     ACTION burnasset(
       name owner,
@@ -181,8 +185,8 @@ CONTRACT atomicassets : public contract {
       bool transferable,
       bool burnable,
       uint64_t max_supply,
-      string json_immutable_data,
-      string json_mutable_data
+      ATTRIBUTE_MAP immutable_data,
+      ATTRIBUTE_MAP mutable_data
     );
     ACTION logmint(
       name minter,
@@ -202,7 +206,7 @@ CONTRACT atomicassets : public contract {
     TABLE schemes_s {
       name                scheme_name;
       name                author;
-      vector<string>      format;
+      vector<FORMAT>      format;
 
       uint64_t primary_key() const { return scheme_name.value; }
     };
@@ -270,7 +274,7 @@ CONTRACT atomicassets : public contract {
     TABLE config_s {
       uint64_t            asset_counter = 1099511627780; //2^40
       uint64_t            offer_counter = 0;
-      vector<string>      collection_format = {};
+      vector<FORMAT> collection_format = {};
     };
     typedef singleton<name("config"), config_s> config_t;
     // https://github.com/EOSIO/eosio.cdt/issues/280
@@ -278,7 +282,7 @@ CONTRACT atomicassets : public contract {
 
     TABLE tokenconfigs_s {
       name           standard = name("atomicassets");
-      std::string    version = string("beta");
+      std::string    version = string("0.1.0");
     };
     typedef singleton<name("tokenconfigs"), tokenconfigs_s> tokenconfigs_t;
 

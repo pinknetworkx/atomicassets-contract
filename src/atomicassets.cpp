@@ -1,6 +1,4 @@
 #include <atomicassets.hpp>
-#include <checkformat.hpp>
-#include <serialization.hpp>
 
 static constexpr symbol CORE_SYMBOL = symbol("WAX", 8);
 static const asset ZERO_CORE_TOKENS = asset(0, CORE_SYMBOL);
@@ -20,7 +18,7 @@ ACTION atomicassets::init() {
 *  Adds one or more lines to the format that is used for collection data serialization
 *  @required_auth The contract itself
 */
-ACTION atomicassets::admincoledit(vector<string> collection_format_extension) {
+ACTION atomicassets::admincoledit(vector<atomicdata::FORMAT> collection_format_extension) {
   require_auth(get_self());
 
   check(collection_format_extension.size() != 0, "Need to add at least one new line");
@@ -70,7 +68,7 @@ ACTION atomicassets::transfer(
 ACTION atomicassets::createscheme(
   name author,
   name scheme_name,
-  vector<string> scheme_format
+  vector<FORMAT> scheme_format
 ) {
   require_auth(author);
   check(schemes.find(scheme_name.value) == schemes.end(),
@@ -94,7 +92,7 @@ ACTION atomicassets::createscheme(
 */
 ACTION atomicassets::extendscheme(
   name scheme_name,
-  vector<string> scheme_format_extension
+  vector<FORMAT> scheme_format_extension
 ) {
   auto scheme_itr = schemes.require_find(scheme_name.value,
   "No scheme with this name exists");
@@ -103,7 +101,7 @@ ACTION atomicassets::extendscheme(
 
   check(scheme_format_extension.size() != 0, "Need to add at least one new line");
 
-  vector<string> lines = scheme_itr->format;
+  vector<FORMAT> lines = scheme_itr->format;
   lines.insert(lines.end(), scheme_format_extension.begin(), scheme_format_extension.end());
   check_format(lines);
 
@@ -121,7 +119,7 @@ ACTION atomicassets::createcol(
   name author,
   vector<name> authorized_accounts,
   vector<name> notify_accounts,
-  string json_data
+  ATTRIBUTE_MAP data
 ) {
   require_auth(author);
 
@@ -149,7 +147,7 @@ ACTION atomicassets::createcol(
     _collection.author = author;
     _collection.authorized_accounts = authorized_accounts;
     _collection.notify_accounts = notify_accounts;
-    _collection.serialized_data = serialize(json_data, current_config.collection_format);
+    _collection.serialized_data = serialize(data, current_config.collection_format);
   });
 }
 
@@ -161,7 +159,7 @@ ACTION atomicassets::createcol(
 */
 ACTION atomicassets::setcoldata(
   name collection_name,
-  string json_data
+  ATTRIBUTE_MAP data
 ) {
   auto collection_itr = collections.require_find(collection_name.value,
   "No collection with this name exists");
@@ -170,7 +168,7 @@ ACTION atomicassets::setcoldata(
 
   auto current_config = config.get();
   collections.modify(collection_itr, same_payer, [&](auto& _collection) {
-    _collection.serialized_data = serialize(json_data, current_config.collection_format);
+    _collection.serialized_data = serialize(data, current_config.collection_format);
   });
 }
 
@@ -298,8 +296,8 @@ ACTION atomicassets::createpre(
   bool transferable,
   bool burnable,
   uint64_t max_supply,
-  string json_immutable_data,
-  string json_mutable_data
+  ATTRIBUTE_MAP immutable_data,
+  ATTRIBUTE_MAP mutable_data
 ) {
   require_auth(authorized_creator);
 
@@ -324,8 +322,8 @@ ACTION atomicassets::createpre(
     _preset.burnable = burnable;
     _preset.max_supply = max_supply == 0 ? *(new vector<uint8_t>) : int_to_byte_vector(max_supply);
     _preset.issued_supply = max_supply == 0 ? *(new vector<uint8_t>) : int_to_byte_vector(0);
-    _preset.immutable_serialized_data = serialize(json_immutable_data, scheme_itr->format);
-    _preset.mutable_serialized_data = serialize(json_mutable_data, scheme_itr->format);
+    _preset.immutable_serialized_data = serialize(immutable_data, scheme_itr->format);
+    _preset.mutable_serialized_data = serialize(mutable_data, scheme_itr->format);
   });
 
   action(
@@ -340,8 +338,8 @@ ACTION atomicassets::createpre(
       transferable,
       burnable,
       max_supply,
-      json_immutable_data,
-      json_mutable_data
+      immutable_data,
+      mutable_data
     )
   ).send();
 }
@@ -354,7 +352,7 @@ ACTION atomicassets::createpre(
 ACTION atomicassets::editpredata(
   name authorized_editor,
   uint32_t preset_id,
-  string json_new_mutable_data
+  ATTRIBUTE_MAP new_mutable_data
 ) {
   require_auth(authorized_editor);
 
@@ -372,7 +370,7 @@ ACTION atomicassets::editpredata(
   auto scheme_itr = schemes.find(preset_itr->scheme_name.value);
 
   presets.modify(preset_itr, authorized_editor, [&](auto& _preset) {
-    _preset.mutable_serialized_data = serialize(json_new_mutable_data, scheme_itr->format);
+    _preset.mutable_serialized_data = serialize(new_mutable_data, scheme_itr->format);
   });
 }
 
@@ -388,8 +386,8 @@ ACTION atomicassets::mintasset(
   name authorized_minter,
   uint32_t preset_id,
   name new_owner,
-  string json_immutable_data,
-  string json_mutable_data
+  ATTRIBUTE_MAP immutable_data,
+  ATTRIBUTE_MAP mutable_data
 ) {
   require_auth(authorized_minter);
 
@@ -423,8 +421,8 @@ ACTION atomicassets::mintasset(
     _asset.preset_id = preset_id;
     _asset.ram_payer = authorized_minter;
     _asset.backed_core_tokens = ZERO_CORE_TOKENS;
-    _asset.immutable_serialized_data = serialize(json_immutable_data, scheme_itr->format);
-    _asset.mutable_serialized_data = serialize(json_mutable_data, scheme_itr->format);
+    _asset.immutable_serialized_data = serialize(immutable_data, scheme_itr->format);
+    _asset.mutable_serialized_data = serialize(mutable_data, scheme_itr->format);
   });
   
   config.set(current_config, get_self());
@@ -447,7 +445,7 @@ ACTION atomicassets::editasstdata (
   name authorized_editor,
   name owner,
   uint64_t asset_id,
-  string json_new_mutable_data
+  ATTRIBUTE_MAP new_mutable_data
 ) {
   require_auth(authorized_editor);
 
@@ -470,7 +468,7 @@ ACTION atomicassets::editasstdata (
 
   owner_assets.modify(asset_itr, authorized_editor, [&](auto& _asset) {
     _asset.ram_payer = authorized_editor;
-    _asset.mutable_serialized_data = serialize(json_new_mutable_data, scheme_itr->format);
+    _asset.mutable_serialized_data = serialize(new_mutable_data, scheme_itr->format);
   });
 
   for (const name& notify_account : collection_itr->notify_accounts) {
@@ -735,8 +733,8 @@ ACTION atomicassets::lognewpreset(
   bool transferable,
   bool burnable,
   uint64_t max_supply,
-  string json_immutable_data,
-  string json_mutable_data
+  ATTRIBUTE_MAP immutable_data,
+  ATTRIBUTE_MAP mutable_data
 ) {
   require_auth(get_self());
 
