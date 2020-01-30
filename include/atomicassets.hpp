@@ -40,6 +40,12 @@ ACTION burnasset(
   uint64_t asset_id
 );
 
+ACTION logbackasset(
+  name owner,
+  uint64_t asset_id,
+  asset back_quantity;
+);
+
 ACTION lognewpreset(
   uint32_t preset_id;
   name authorized_creator,
@@ -52,10 +58,10 @@ ACTION lognewpreset(
   ATTRIBUTE_MAP mutable_data
 );
 
-ACTION logbackasset(
-  name owner,
-  uint64_t asset_id,
-  asset back_quantity;
+ACTION editpredata(
+  name authorized_editor,
+  uint32_t preset_id,
+  ATTRIBUTE_MAP new_mutable_data
 );
 
 */

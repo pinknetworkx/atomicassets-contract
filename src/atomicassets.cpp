@@ -372,6 +372,10 @@ ACTION atomicassets::editpredata(
   presets.modify(preset_itr, authorized_editor, [&](auto& _preset) {
     _preset.mutable_serialized_data = serialize(new_mutable_data, scheme_itr->format);
   });
+
+  for (const name& notify_account : collection_itr->notify_accounts) {
+    require_recipient(notify_account);
+  }
 }
 
 
