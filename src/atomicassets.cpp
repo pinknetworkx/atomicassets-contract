@@ -601,8 +601,7 @@ ACTION atomicassets::canceloffer(
 *  @require_auth The offer's recipient
 */
 ACTION atomicassets::acceptoffer(
-  uint64_t offer_id,
-  name item_recipient
+  uint64_t offer_id
 ) {
   auto offer_itr = offers.require_find(offer_id,
   "No offer with this id exists");
@@ -611,9 +610,6 @@ ACTION atomicassets::acceptoffer(
 
   require_recipient(offer_itr->offer_sender);
   require_recipient(offer_itr->offer_recipient);
-
-  check(item_recipient != offer_itr->offer_sender,
-  "item_recipient can't be the offer sender");
 
   assets_t sender_assets = get_assets(offer_itr->offer_sender);
   assets_t recipient_assets = get_assets(offer_itr->offer_recipient);

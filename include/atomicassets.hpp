@@ -164,8 +164,7 @@ CONTRACT atomicassets : public contract {
       uint64_t offer_id
     );
     ACTION acceptoffer(
-      uint64_t offer_id,
-      name item_recipient
+      uint64_t offer_id
     );
     ACTION declineoffer(
       uint64_t offer_id
