@@ -350,7 +350,7 @@ namespace atomicdata {
             }
 
         } else if (type == "byte") {
-            return serialize_attribute("uint8", attr);
+            return serialize_attribute("fixed8", attr);
 
         } else {
             check(false, "No type could be matched - " + type);

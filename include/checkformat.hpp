@@ -17,8 +17,8 @@ For a format to be vlaid, three things are checked:
     fixed8/ fixed16/ fixed32/ fixed64
     float/ double/ string/ ipfs/ bool/ byte
 
-    or any valid type followed by [] to describe an array
-    nested arrays (e.g. uint64[][]) are not allowed
+    or any valid type followed by [] to describe a vector
+    nested vectors (e.g. uint64[][]) are not allowed
 
 2. Names need to be unique
 

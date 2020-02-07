@@ -29,7 +29,7 @@ ACTION logmint(
   name new_owner
 );
 
-ACTION editasstdata(
+ACTION setassetdata(
   name editor,
   uint64_t asset_id,
   name new_owner
@@ -58,7 +58,7 @@ ACTION lognewpreset(
   ATTRIBUTE_MAP mutable_data
 );
 
-ACTION editpredata(
+ACTION setpredata(
   name authorized_editor,
   uint32_t preset_id,
   ATTRIBUTE_MAP new_mutable_data
@@ -92,8 +92,8 @@ CONTRACT atomicassets : public contract {
     );
     
     ACTION createcol(
-      name collection_name,
       name author,
+      name collection_name,
       vector<name> authorized_accounts,
       vector<name> notify_accounts,
       ATTRIBUTE_MAP data
@@ -129,7 +129,7 @@ CONTRACT atomicassets : public contract {
       ATTRIBUTE_MAP immutable_data,
       ATTRIBUTE_MAP mutable_data
     );
-    ACTION editpredata(
+    ACTION setpredata(
       name authorized_editor,
       uint32_t preset_id,
       ATTRIBUTE_MAP new_mutable_data
@@ -142,7 +142,7 @@ CONTRACT atomicassets : public contract {
       ATTRIBUTE_MAP immutable_data,
       ATTRIBUTE_MAP mutable_data
     );
-    ACTION editasstdata (
+    ACTION setassetdata(
       name authorized_editor,
       name owner,
       uint64_t asset_id,
@@ -245,12 +245,12 @@ CONTRACT atomicassets : public contract {
     };
     typedef multi_index<name("presets"), presets_s> presets_t;
 
-    //Scope: ownner
+    //Scope: owner
     TABLE assets_s {
       uint64_t            id;
       uint32_t            preset_id;
       name                ram_payer;
-      asset               backed_core_tokens;
+      uint64_t            backed_core_amount;
       vector<uint8_t>     immutable_serialized_data;
       vector<uint8_t>     mutable_serialized_data;
 

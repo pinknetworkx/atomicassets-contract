@@ -1,7 +1,6 @@
 #include <atomicassets.hpp>
 
 static constexpr symbol CORE_SYMBOL = symbol("WAX", 8);
-static const asset ZERO_CORE_TOKENS = asset(0, CORE_SYMBOL);
 static constexpr uint64_t MAX_ID = 18446744073709551615;
 
 /**
@@ -115,8 +114,8 @@ ACTION atomicassets::extendscheme(
 *  Creates a new collection
 */
 ACTION atomicassets::createcol(
-  name collection_name,
   name author,
+  name collection_name,
   vector<name> authorized_accounts,
   vector<name> notify_accounts,
   ATTRIBUTE_MAP data
@@ -349,7 +348,7 @@ ACTION atomicassets::createpre(
 *  Updates the mutable data of a preset
 *  @required_auth At least one of the accounts within the authorized_accounts list of the collection
 */
-ACTION atomicassets::editpredata(
+ACTION atomicassets::setpredata(
   name authorized_editor,
   uint32_t preset_id,
   ATTRIBUTE_MAP new_mutable_data
@@ -424,7 +423,7 @@ ACTION atomicassets::mintasset(
     _asset.id = asset_id;
     _asset.preset_id = preset_id;
     _asset.ram_payer = authorized_minter;
-    _asset.backed_core_tokens = ZERO_CORE_TOKENS;
+    _asset.backed_core_amount = 0;
     _asset.immutable_serialized_data = serialize(immutable_data, scheme_itr->format);
     _asset.mutable_serialized_data = serialize(mutable_data, scheme_itr->format);
   });
@@ -445,7 +444,7 @@ ACTION atomicassets::mintasset(
 *  @required_auth At least one of the accounts within the authorized_accounts list of the collection
                   specified in the related preset
 */
-ACTION atomicassets::editasstdata (
+ACTION atomicassets::setassetdata(
   name authorized_editor,
   name owner,
   uint64_t asset_id,
@@ -501,7 +500,10 @@ ACTION atomicassets::burnasset(
   check (preset_itr->burnable,
   "The asset is not burnable");
 
-  if (asset_itr->backed_core_tokens.amount != 0) {
+
+  asset backed_quantity = asset(asset_itr->backed_core_amount, CORE_SYMBOL);
+
+  if (asset_itr->backed_core_amount != 0) {
     action(
       permission_level{get_self(), name("active")},
       name("eosio.token"),
@@ -509,7 +511,7 @@ ACTION atomicassets::burnasset(
       make_tuple(
         get_self(),
         owner,
-        asset_itr->backed_core_tokens,
+        backed_quantity,
         string("Backed asset payout - ID: ") + to_string(asset_id)
       )
     ).send();
@@ -690,7 +692,7 @@ void atomicassets::receive_token_transfer(name from, name to, asset quantity, st
     check(preset_itr->burnable, "Can't back an asset that is not burnable");
 
     account_assets.modify(asset_itr, same_payer, [&](auto& _asset) {
-      _asset.backed_core_tokens = _asset.backed_core_tokens + quantity;
+      _asset.backed_core_amount += quantity.amount;
     });
 
     action(
@@ -834,7 +836,7 @@ void atomicassets::internal_transfer(
         _asset.id = MAX_ID;
         _asset.preset_id = 0;
         _asset.ram_payer = name("");
-        _asset.backed_core_tokens = ZERO_CORE_TOKENS;
+        _asset.backed_core_amount = 0;
         _asset.immutable_serialized_data = {};
         _asset.mutable_serialized_data = {};
       });
@@ -844,7 +846,7 @@ void atomicassets::internal_transfer(
       _asset.id = asset_itr->id;
       _asset.preset_id = asset_itr->preset_id;
       _asset.ram_payer = asset_itr->ram_payer;
-      _asset.backed_core_tokens = asset_itr->backed_core_tokens;
+      _asset.backed_core_amount = asset_itr->backed_core_amount;
       _asset.immutable_serialized_data = asset_itr->immutable_serialized_data;
       _asset.mutable_serialized_data = asset_itr->mutable_serialized_data;
     });
