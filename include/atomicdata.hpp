@@ -52,39 +52,30 @@ namespace atomicdata {
         }
 
         vector<uint8_t> bytes = {};
-        for (uint64_t i = 0; i < original_bytes + 1; i++) {
-            if (i == original_bytes) {
-                bytes.push_back((uint8_t) number % 256);
+        while (true) {
+            if (number >= 128) {
+                bytes.push_back((uint8_t) (128 + number % 128));
+                number /= 128;
             } else {
-                if (number >= 128) {
-                    bytes.push_back((uint8_t) (128 + number % 128));
-                    number /= 128;
-                } else {
-                    bytes.push_back((uint8_t) number);
-                    break;
-                }
+                bytes.push_back((uint8_t) number);
+                break;
             }
         }
 
         return bytes;
     }
 
-    uint64_t unsignedFromVarintBytes(vector<uint8_t>::iterator &itr, uint64_t original_bytes = 8) {
+    uint64_t unsignedFromVarintBytes(vector<uint8_t>::iterator &itr) {
         uint64_t number = 0;
         uint64_t multiplier = 1;
-        for (uint64_t i = 0; i < original_bytes + 1; i++) {
-            if (i == original_bytes) {
-                number += ((uint64_t) *itr) * multiplier;
+        while (true) {
+            if (*itr >= 128) {
+                number += (((uint64_t) *itr) - 128) * multiplier;
                 itr++;
             } else {
-                if (*itr >= 128) {
-                    number += (((uint64_t) *itr) - 128) * multiplier;
-                    itr++;
-                } else {
-                    number += ((uint64_t) *itr) * multiplier;
-                    itr++;
-                    break;
-                }
+                number += ((uint64_t) *itr) * multiplier;
+                itr++;
+                break;
             }
             multiplier *= 128;
         }
@@ -93,7 +84,7 @@ namespace atomicdata {
     }
 
     int64_t signedFromVarintBytes(vector<uint8_t>::iterator &itr, uint64_t original_bytes = 8) {
-        uint64_t number = unsignedFromVarintBytes(itr, original_bytes);
+        uint64_t number = unsignedFromVarintBytes(itr);
         if (original_bytes != 8 && number & (1 << (original_bytes * 8 - 1))) {
             //The number should be negative
             uint64_t mask = 0 - ((uint64_t) 1 << original_bytes * 8);
@@ -440,23 +431,11 @@ namespace atomicdata {
             }
         }
 
-        if (type == "int8") {
-            return (int8_t) zigzagDecode(unsignedFromVarintBytes(itr, 1));
-        } else if (type == "int16") {
-            return (int16_t) zigzagDecode(unsignedFromVarintBytes(itr, 2));
-        } else if (type == "int32") {
-            return (int32_t) zigzagDecode(unsignedFromVarintBytes(itr, 4));
-        } else if (type == "int64") {
-            return (int64_t) zigzagDecode(unsignedFromVarintBytes(itr, 8));
+        if (type == "int8" || type == "int16" || type == "int32" || type == "int64") {
+            return (int8_t) zigzagDecode(unsignedFromVarintBytes(itr));
 
-        } else if (type == "uint8") {
-            return (uint8_t) unsignedFromVarintBytes(itr, 1);
-        } else if (type == "uint16") {
-            return (uint16_t) unsignedFromVarintBytes(itr, 2);
-        } else if (type == "uint32") {
-            return (uint32_t) unsignedFromVarintBytes(itr, 4);
-        } else if (type == "uint64") {
-            return (uint64_t) unsignedFromVarintBytes(itr, 8);
+        } else if (type == "uint8" || type == "uint16" || type == "uint32" || type == "uint64") {
+            return (uint8_t) unsignedFromVarintBytes(itr);
 
         } else if (type == "fixed8") {
             return (uint8_t) unsignedFromIntBytes(itr, 1);
