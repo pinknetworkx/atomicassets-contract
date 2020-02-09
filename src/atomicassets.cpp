@@ -287,7 +287,7 @@ ACTION atomicassets::remnotifyacc(
 *  Creates a new preset
 *  @required_auth At least one of the accounts within the authorized_accounts list of the collection
 */
-ACTION atomicassets::createpre(
+ACTION atomicassets::createpreset(
   name authorized_creator,
   name scheme_name,
   name collection_name,

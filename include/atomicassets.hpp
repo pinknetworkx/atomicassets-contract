@@ -119,7 +119,7 @@ CONTRACT atomicassets : public contract {
       name account_to_remove
     );
 
-    ACTION createpre(
+    ACTION createpreset(
       name authorized_creator,
       name scheme_name,
       name collection_name,
