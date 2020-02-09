@@ -1,7 +1,6 @@
 #include <atomicassets.hpp>
 
 static constexpr symbol CORE_SYMBOL = symbol("WAX", 8);
-static constexpr uint64_t MAX_ID = 18446744073709551615;
 
 /**
 *  Initializes the config table. Only needs to be called once when first deploying the contract
@@ -833,7 +832,7 @@ void atomicassets::internal_transfer(
       //This asset is later deleted again.
       //This action will therefore fail is the scope_payer didn't authorize the action
       to_assets.emplace(scope_payer, [&](auto& _asset) {
-        _asset.id = MAX_ID;
+        _asset.id = ULLONG_MAX;
         _asset.preset_id = 0;
         _asset.ram_payer = name("");
         _asset.backed_core_amount = 0;
@@ -854,7 +853,7 @@ void atomicassets::internal_transfer(
     from_assets.erase(asset_itr);
 
     if (no_previous_scope) {
-      to_assets.erase(to_assets.find(MAX_ID));
+      to_assets.erase(to_assets.find(ULLONG_MAX));
     }
   }
 
