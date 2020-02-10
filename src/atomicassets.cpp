@@ -117,6 +117,7 @@ ACTION atomicassets::createcol(
   name collection_name,
   vector<name> authorized_accounts,
   vector<name> notify_accounts,
+  bool allow_notify,
   ATTRIBUTE_MAP data
 ) {
   require_auth(author);
@@ -126,6 +127,8 @@ ACTION atomicassets::createcol(
 
   check(collections.find(collection_name.value) == collections.end(),
   "A collection with this name already exists");
+
+  check(allow_notify || notify_accounts.size() == 0, "Can't add notify_accounts if allow_notify is false");
 
   for (auto itr = authorized_accounts.begin(); itr != authorized_accounts.end(); itr++) {
     check(is_account(*itr), string("At least one account does not exist - " + itr->to_string()).c_str());
@@ -137,7 +140,7 @@ ACTION atomicassets::createcol(
     check(std::find(notify_accounts.begin(), notify_accounts.end(), *itr) == itr,
     "You can't have duplicates in the notify_accounts");
   }
-
+  
   auto current_config = config.get();
 
   collections.emplace(author, [&](auto& _collection) {
@@ -145,6 +148,7 @@ ACTION atomicassets::createcol(
     _collection.author = author;
     _collection.authorized_accounts = authorized_accounts;
     _collection.notify_accounts = notify_accounts;
+    _collection.allow_notify = allow_notify;
     _collection.serialized_data = serialize(data, current_config.collection_format);
   });
 }
@@ -240,6 +244,8 @@ ACTION atomicassets::addnotifyacc(
   "No collection with this name exists");
   
   require_auth(collection_itr->author);
+
+  check(collection_itr->allow_notify, "Adding notify accounts to this collection is not allowed");
 
   check(is_account(account_to_add), "The account does not exist");
 
