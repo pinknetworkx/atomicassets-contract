@@ -96,6 +96,7 @@ CONTRACT atomicassets : public contract {
       name collection_name,
       vector<name> authorized_accounts,
       vector<name> notify_accounts,
+      bool allow_notify,
       ATTRIBUTE_MAP data
     );
     ACTION setcoldata(
@@ -223,6 +224,7 @@ CONTRACT atomicassets : public contract {
       name                author;
       vector<name>        authorized_accounts;
       vector<name>        notify_accounts;
+      bool                allow_notify;
       vector<uint8_t>     serialized_data;
 
       uint64_t primary_key() const { return collection_name.value; };
