@@ -315,8 +315,4 @@ CONTRACT atomicassets : public contract {
     assets_t get_assets(name acc);
 
     schemes_t get_schemes(name collection_name);
-
-    vector<uint8_t> int_to_byte_vector(uint64_t number);
-
-    uint64_t byte_vector_to_int(vector<uint8_t> bytes);
 };

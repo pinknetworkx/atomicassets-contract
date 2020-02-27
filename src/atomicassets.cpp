@@ -410,7 +410,7 @@ ACTION atomicassets::mintasset(
     check(preset_itr->scheme_name == scheme_name && preset_itr->collection_name == collection_name,
     "The preset belongs to another scheme / collection combination");
 
-    if (preset_itr->max_supply >= 0) {
+    if (preset_itr->max_supply > 0) {
       check (preset_itr->issued_supply < preset_itr->max_supply,
       "The preset's maxsupply has already been reached");
       presets.modify(preset_itr, same_payer, [&](auto& _preset) {
@@ -507,9 +507,10 @@ ACTION atomicassets::burnasset(
   auto asset_itr = owner_assets.require_find(asset_id,
   "No asset with this id exists");
 
-  auto preset_itr = presets.find(asset_itr->preset_id);
-  check (preset_itr->burnable,
-  "The asset is not burnable");
+  if (asset_itr->preset_id >= 0) {
+    auto preset_itr = presets.find(asset_itr->preset_id);
+    check (preset_itr->burnable, "The asset is not burnable");
+  };
 
 
   asset backed_quantity = asset(asset_itr->backed_core_amount, CORE_SYMBOL);
@@ -531,7 +532,7 @@ ACTION atomicassets::burnasset(
   owner_assets.erase(asset_itr);
 
 
-  auto collection_itr = collections.find(preset_itr->collection_name.value);
+  auto collection_itr = collections.find(asset_itr->collection_name.value);
   for (const name& notify_account : collection_itr->notify_accounts) {
     require_recipient(notify_account);
   }
@@ -566,16 +567,20 @@ ACTION atomicassets::createoffer(
   for (uint64_t asset_id : sender_asset_ids) {
     auto asset_itr = sender_assets.require_find(asset_id,
     ("Offer sender doesn't own at least one of the provided assets (ID: " + to_string(asset_id) + ")").c_str());
-    auto preset_itr = presets.find(asset_itr->preset_id);
-    check(preset_itr->transferable,
-    ("At least one asset isn't transferable (ID: " + to_string(asset_id) + ")").c_str());
+    if (asset_itr->preset_id >= 0) {
+      auto preset_itr = presets.find(asset_itr->preset_id);
+      check(preset_itr->transferable,
+      ("At least one asset isn't transferable (ID: " + to_string(asset_id) + ")").c_str());
+    }
   }
   for (uint64_t asset_id : recipient_asset_ids) {
     auto asset_itr = recipient_assets.require_find(asset_id,
     ("Offer recipient doesn't own at least one of the provided assets (ID: " + to_string(asset_id) + ")").c_str());
-    auto preset_itr = presets.find(asset_itr->preset_id);
-    check(preset_itr->transferable,
-    ("At least one asset isn't transferable (ID: " + to_string(asset_id) + ")").c_str());
+    if (asset_itr->preset_id >= 0) {
+      auto preset_itr = presets.find(asset_itr->preset_id);
+      check(preset_itr->transferable,
+      ("At least one asset isn't transferable (ID: " + to_string(asset_id) + ")").c_str());
+    }
   }
 
   config_s current_config = config.get();
@@ -700,8 +705,10 @@ void atomicassets::receive_token_transfer(name from, name to, asset quantity, st
     auto asset_itr = account_assets.require_find(asset_id,
     "The account does not own an asset with this id");
 
-    auto preset_itr = presets.find(asset_itr->preset_id);
-    check(preset_itr->burnable, "Can't back an asset that is not burnable");
+    if (asset_itr->preset_id >= 0) {
+      auto preset_itr = presets.find(asset_itr->preset_id);
+      check(preset_itr->burnable, "Can't back an asset that is not burnable");
+    }
 
     account_assets.modify(asset_itr, same_payer, [&](auto& _asset) {
       _asset.backed_core_amount += quantity.amount;
@@ -826,15 +833,17 @@ void atomicassets::internal_transfer(
     ("Sender doesn't own at least one of the provided assets (ID: " + to_string(asset_id) + ")").c_str());
 
     //Existence doesn't have to be checked because this always has to exist
-    auto preset_itr = presets.find(asset_itr->preset_id);
-    check(preset_itr->transferable,
-    ("At least one asset isn't transferable (ID: " + to_string(asset_id) + ")").c_str());
+    if (asset_itr->preset_id >= 0) {
+      auto preset_itr = presets.find(asset_itr->preset_id);
+      check(preset_itr->transferable,
+      ("At least one asset isn't transferable (ID: " + to_string(asset_id) + ")").c_str());
+    }
 
     //This is needed for sending noficiations later
-    if (collection_to_assets_transferred.find(preset_itr->collection_name) != collection_to_assets_transferred.end()) {
-      collection_to_assets_transferred[preset_itr->collection_name].push_back(asset_id);
+    if (collection_to_assets_transferred.find(asset_itr->collection_name) != collection_to_assets_transferred.end()) {
+      collection_to_assets_transferred[asset_itr->collection_name].push_back(asset_id);
     } else {
-      collection_to_assets_transferred[preset_itr->collection_name] = {asset_id};
+      collection_to_assets_transferred[asset_itr->collection_name] = {asset_id};
     }
 
     //to assets are empty => no scope has been created yet
@@ -895,25 +904,4 @@ atomicassets::assets_t atomicassets::get_assets(name acc) {
 
 atomicassets::schemes_t atomicassets::get_schemes(name collection_name) {
   return schemes_t(get_self(), collection_name.value);
-}
-
-
-vector<uint8_t> atomicassets::int_to_byte_vector(uint64_t number) {
-  vector<uint8_t> bytes = {};
-  while (number != 0) {
-    bytes.push_back((uint8_t) number % 256);
-    number /= 256;
-  }
-  return bytes;
-}
-
-
-uint64_t atomicassets::byte_vector_to_int(vector<uint8_t> bytes) {
-  uint64_t number = 0;
-  uint64_t multiplier = 1;
-  for (const auto& byte_val : bytes) {
-    number += ((uint64_t) byte_val) * multiplier;
-    multiplier *= 256;
-  }
-  return number;
 }
