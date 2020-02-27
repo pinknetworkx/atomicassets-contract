@@ -58,56 +58,6 @@ ACTION atomicassets::transfer(
 }
 
 
-/**
-*  Creates a new scheme.
-*  Schemes can be used freely by anyone, and can only be extended in the future, but never changed retroactively.
-*  This guarantees a correct deserialization for existing presets and assets
-*/
-ACTION atomicassets::createscheme(
-  name author,
-  name scheme_name,
-  vector<FORMAT> scheme_format
-) {
-  require_auth(author);
-  check(schemes.find(scheme_name.value) == schemes.end(),
-  "A scheme with this name already exists");
-  check(!is_account(scheme_name) || has_auth(scheme_name),
-  "You can't create a scheme with a name of an existing, different account");
-
-  check_format(scheme_format);
-
-  schemes.emplace(author, [&](auto& _scheme){
-    _scheme.scheme_name = scheme_name;
-    _scheme.author = author;
-    _scheme.format = scheme_format;
-  });
-}
-
-
-/**
-*  Adds one or more lines to the format of an existing scheme
-*  @required_auth The collection author
-*/
-ACTION atomicassets::extendscheme(
-  name scheme_name,
-  vector<FORMAT> scheme_format_extension
-) {
-  auto scheme_itr = schemes.require_find(scheme_name.value,
-  "No scheme with this name exists");
-  
-  require_auth(scheme_itr->author);
-
-  check(scheme_format_extension.size() != 0, "Need to add at least one new line");
-
-  vector<FORMAT> lines = scheme_itr->format;
-  lines.insert(lines.end(), scheme_format_extension.begin(), scheme_format_extension.end());
-  check_format(lines);
-
-  schemes.modify(scheme_itr, same_payer, [&](auto& _scheme) {
-    _scheme.format = lines;
-  });
-}
-
 
 /**
 *  Creates a new collection
@@ -290,23 +240,19 @@ ACTION atomicassets::remnotifyacc(
 
 
 /**
-*  Creates a new preset
-*  @required_auth At least one of the accounts within the authorized_accounts list of the collection
+*  Creates a new scheme
+*  Schemes can only be extended in the future, but never changed retroactively.
+*  This guarantees a correct deserialization for existing presets and assets.
+*  @required_auth authorized_creator, who is within the authorized_accounts list of the collection
 */
-ACTION atomicassets::createpreset(
+ACTION atomicassets::createscheme(
   name authorized_creator,
-  name scheme_name,
   name collection_name,
-  bool transferable,
-  bool burnable,
-  uint64_t max_supply,
-  ATTRIBUTE_MAP immutable_data,
-  ATTRIBUTE_MAP mutable_data
+  name scheme_name,
+  vector<FORMAT> scheme_format
 ) {
   require_auth(authorized_creator);
 
-  auto scheme_itr = schemes.require_find(scheme_name.value,
-  "No scheme with this name exists");
   auto collection_itr = collections.require_find(collection_name.value,
   "No collection with this name exists");
 
@@ -317,17 +263,100 @@ ACTION atomicassets::createpreset(
   ) != collection_itr->authorized_accounts.end(),
   "The creator is not authorized within the collection");
 
+  schemes_t collection_schemes = get_schemes(collection_name);
+  
+  check(collection_schemes.find(scheme_name.value) == collection_schemes.end(),
+  "A scheme with this name already exists for this collection");
+
+  check_format(scheme_format);
+
+  collection_schemes.emplace(authorized_creator, [&](auto& _scheme){
+    _scheme.scheme_name = scheme_name;
+    _scheme.format = scheme_format;
+  });
+}
+
+
+
+/**
+*  Adds one or more lines to the format of an existing scheme
+*  @required_auth authorized_editor, who is within the authorized_accounts list of the collection
+*/
+ACTION atomicassets::extendscheme(
+  name authorized_editor,
+  name collection_name,
+  name scheme_name,
+  vector<FORMAT> scheme_format_extension
+) {
+  require_auth(authorized_editor);
+
+  auto collection_itr = collections.require_find(collection_name.value,
+  "No collection with this name exists");
+
+  check(std::find(
+    collection_itr->authorized_accounts.begin(),
+    collection_itr->authorized_accounts.end(),
+    authorized_editor
+  ) != collection_itr->authorized_accounts.end(),
+  "The editor is not authorized within the collection");
+
+
+  check(scheme_format_extension.size() != 0, "Need to add at least one new line");
+
+  schemes_t collection_schemes = get_schemes(collection_name);
+  auto scheme_itr = collection_schemes.require_find(scheme_name.value,
+  "No scheme with this name exists for this collection");
+
+  vector<FORMAT> lines = scheme_itr->format;
+  lines.insert(lines.end(), scheme_format_extension.begin(), scheme_format_extension.end());
+  check_format(lines);
+
+  collection_schemes.modify(scheme_itr, authorized_editor, [&](auto& _scheme) {
+    _scheme.format = lines;
+  });
+}
+
+
+
+/**
+*  Creates a new preset
+*  @required_auth authorized_creator, who is within the authorized_accounts list of the collection
+*/
+ACTION atomicassets::createpreset(
+  name authorized_creator,
+  name collection_name,
+  name scheme_name,
+  bool transferable,
+  bool burnable,
+  uint16_t max_supply,
+  ATTRIBUTE_MAP immutable_data
+) {
+  require_auth(authorized_creator);
+
+  auto collection_itr = collections.require_find(collection_name.value,
+  "No collection with this name exists");
+
+  check(std::find(
+    collection_itr->authorized_accounts.begin(),
+    collection_itr->authorized_accounts.end(),
+    authorized_creator
+  ) != collection_itr->authorized_accounts.end(),
+  "The creator is not authorized within the collection");
+
+  schemes_t collection_schemes = get_schemes(collection_name);
+  auto scheme_itr = collection_schemes.require_find(scheme_name.value,
+  "No scheme with this name exists");
+
   uint32_t preset_id = presets.available_primary_key();
   presets.emplace(authorized_creator, [&](auto& _preset) {
-    _preset.id = preset_id;
-    _preset.scheme_name = scheme_name;
+    _preset.preset_id = preset_id;
     _preset.collection_name = collection_name;
+    _preset.scheme_name = scheme_name;
     _preset.transferable = transferable;
     _preset.burnable = burnable;
-    _preset.max_supply = max_supply == 0 ? *(new vector<uint8_t>) : int_to_byte_vector(max_supply);
-    _preset.issued_supply = max_supply == 0 ? *(new vector<uint8_t>) : int_to_byte_vector(0);
+    _preset.max_supply = max_supply;
+    _preset.issued_supply = 0;
     _preset.immutable_serialized_data = serialize(immutable_data, scheme_itr->format);
-    _preset.mutable_serialized_data = serialize(mutable_data, scheme_itr->format);
   });
 
   action(
@@ -337,49 +366,14 @@ ACTION atomicassets::createpreset(
     make_tuple(
       preset_id,
       authorized_creator,
-      scheme_name,
       collection_name,
+      scheme_name,
       transferable,
       burnable,
       max_supply,
-      immutable_data,
-      mutable_data
+      immutable_data
     )
   ).send();
-}
-
-
-/**
-*  Updates the mutable data of a preset
-*  @required_auth At least one of the accounts within the authorized_accounts list of the collection
-*/
-ACTION atomicassets::setpredata(
-  name authorized_editor,
-  uint32_t preset_id,
-  ATTRIBUTE_MAP new_mutable_data
-) {
-  require_auth(authorized_editor);
-
-  auto preset_itr = presets.require_find((uint64_t) preset_id,
-  "No preset with this id exists");
-
-  auto collection_itr = collections.find(preset_itr->collection_name.value);
-  check(std::find(
-    collection_itr->authorized_accounts.begin(),
-    collection_itr->authorized_accounts.end(),
-    authorized_editor
-  ) != collection_itr->authorized_accounts.end(),
-  "The editor is not authorized within the collection");
-
-  auto scheme_itr = schemes.find(preset_itr->scheme_name.value);
-
-  presets.modify(preset_itr, authorized_editor, [&](auto& _preset) {
-    _preset.mutable_serialized_data = serialize(new_mutable_data, scheme_itr->format);
-  });
-
-  for (const name& notify_account : collection_itr->notify_accounts) {
-    require_recipient(notify_account);
-  }
 }
 
 
@@ -387,22 +381,21 @@ ACTION atomicassets::setpredata(
 /**
 *  Creates a new asset
 *  Doesn't work if the preset has a specified max_supply that has already been reached
-*  @required_auth At least one of the accounts within the authorized_accounts list of the collection
+*  @required_auth authorized_minter, who is within the authorized_accounts list of the collection
                   specified in the related preset
 */
 ACTION atomicassets::mintasset(
   name authorized_minter,
-  uint32_t preset_id,
+  name collection_name,
+  name scheme_name,
+  int32_t preset_id,
   name new_owner,
   ATTRIBUTE_MAP immutable_data,
   ATTRIBUTE_MAP mutable_data
 ) {
   require_auth(authorized_minter);
 
-  auto preset_itr = presets.require_find(preset_id,
-  "No preset with this id exists");
-
-  auto collection_itr = collections.find(preset_itr->collection_name.value);
+  auto collection_itr = collections.find(collection_name.value);
   check(std::find(
     collection_itr->authorized_accounts.begin(),
     collection_itr->authorized_accounts.end(),
@@ -410,22 +403,37 @@ ACTION atomicassets::mintasset(
   ) != collection_itr->authorized_accounts.end(),
   "The minter is not authorized within the collection");
 
-  if (preset_itr->max_supply.begin() != preset_itr->max_supply.end()) {
-    uint64_t max_supply = byte_vector_to_int(preset_itr->max_supply);
-    uint64_t issued_supply = byte_vector_to_int(preset_itr->issued_supply);
-    check (issued_supply < max_supply, "preset maxsupply has already been reached");
-    presets.modify(preset_itr, authorized_minter, [&](auto& _preset) {
-      _preset.issued_supply = int_to_byte_vector(issued_supply + 1);
-    });
-  }
+  if (preset_id >= 0) {
+    auto preset_itr = presets.require_find(preset_id,
+    "No preset with this id exists");
 
-  auto scheme_itr = schemes.find(preset_itr->scheme_name.value);
+    check(preset_itr->scheme_name == scheme_name && preset_itr->collection_name == collection_name,
+    "The preset belongs to another scheme / collection combination");
+
+    if (preset_itr->max_supply >= 0) {
+      check (preset_itr->issued_supply < preset_itr->max_supply,
+      "The preset's maxsupply has already been reached");
+      presets.modify(preset_itr, same_payer, [&](auto& _preset) {
+        _preset.issued_supply += 1;
+      });
+    }
+  } else {
+    check(preset_id == -1, "The preset id must either be an existing preset or -1");
+  }
+  
+  schemes_t collection_schemes = get_schemes(collection_name);
+  auto scheme_itr = collection_schemes.require_find(scheme_name.value,
+  "No scheme with this name exists");
+
   auto current_config = config.get();
   uint64_t asset_id = current_config.asset_counter++;
+  config.set(current_config, get_self());
 
   assets_t new_owner_assets = get_assets(new_owner);
   new_owner_assets.emplace(authorized_minter, [&](auto& _asset) {
-    _asset.id = asset_id;
+    _asset.asset_id = asset_id;
+    _asset.collection_name = collection_name;
+    _asset.scheme_name = scheme_name;
     _asset.preset_id = preset_id;
     _asset.ram_payer = authorized_minter;
     _asset.backed_core_amount = 0;
@@ -433,20 +441,19 @@ ACTION atomicassets::mintasset(
     _asset.mutable_serialized_data = serialize(mutable_data, scheme_itr->format);
   });
   
-  config.set(current_config, get_self());
 
   action(
     permission_level{get_self(), name("active")},
     get_self(),
     name("logmint"),
-    make_tuple(authorized_minter, asset_id, preset_id, new_owner)
+    make_tuple(authorized_minter, asset_id, collection_name, scheme_name, preset_id, new_owner)
   ).send();
 }
 
 
 /**
 *  Updates the mutable data of an asset
-*  @required_auth At least one of the accounts within the authorized_accounts list of the collection
+*  @required_auth authorized_editor, who is within the authorized_accounts list of the collection
                   specified in the related preset
 */
 ACTION atomicassets::setassetdata(
@@ -462,9 +469,7 @@ ACTION atomicassets::setassetdata(
   auto asset_itr = owner_assets.require_find(asset_id,
   "No asset with this id exists");
 
-  auto preset_itr = presets.find(asset_itr->preset_id);
-
-  auto collection_itr = collections.find(preset_itr->collection_name.value);
+  auto collection_itr = collections.find(asset_itr->collection_name.value);
   check(std::find(
     collection_itr->authorized_accounts.begin(),
     collection_itr->authorized_accounts.end(),
@@ -472,7 +477,8 @@ ACTION atomicassets::setassetdata(
   ) != collection_itr->authorized_accounts.end(),
   "The editor is not authorized within the collection");
 
-  auto scheme_itr = schemes.find(preset_itr->scheme_name.value);
+  schemes_t collection_schemes = get_schemes(asset_itr->collection_name);
+  auto scheme_itr = collection_schemes.find(asset_itr->scheme_name.value);
 
   owner_assets.modify(asset_itr, authorized_editor, [&](auto& _asset) {
     _asset.ram_payer = authorized_editor;
@@ -535,6 +541,7 @@ ACTION atomicassets::burnasset(
 /**
 *  Creates an offer
 *  Offers are two sided, with the only requirement being that at least one asset is included in one of the sides
+*  @required_auth sender
 */
 ACTION atomicassets::createoffer(
   name sender,
@@ -733,15 +740,14 @@ ACTION atomicassets::logtransfer(
 
 
 ACTION atomicassets::lognewpreset(
-  uint32_t preset_id,
+  int32_t preset_id,
   name authorized_creator,
-  name scheme_name,
   name collection_name,
+  name scheme_name,
   bool transferable,
   bool burnable,
-  uint64_t max_supply,
-  ATTRIBUTE_MAP immutable_data,
-  ATTRIBUTE_MAP mutable_data
+  uint16_t max_supply,
+  ATTRIBUTE_MAP immutable_data
 ) {
   require_auth(get_self());
 
@@ -755,13 +761,14 @@ ACTION atomicassets::lognewpreset(
 ACTION atomicassets::logmint(
   name minter,
   uint64_t asset_id,
+  name collection_name,
+  name scheme_name,
   uint32_t preset_id,
   name new_owner
 ) {
   require_auth(get_self());
 
-  auto preset_itr = presets.find(preset_id);
-  auto collection_itr = collections.find(preset_itr->collection_name.value);
+  auto collection_itr = collections.find(collection_name.value);
   for (const name& notify_account : collection_itr->notify_accounts) {
     require_recipient(notify_account);
   }
@@ -777,8 +784,7 @@ ACTION atomicassets::logbackasset(
 
   assets_t owner_assets = get_assets(owner);
   auto asset_itr = owner_assets.find(asset_id);
-  auto preset_itr = presets.find(asset_itr->preset_id);
-  auto collection_itr = collections.find(preset_itr->collection_name.value);
+  auto collection_itr = collections.find(asset_itr->collection_name.value);
   for (const name& notify_account : collection_itr->notify_accounts) {
     require_recipient(notify_account);
   }
@@ -838,9 +844,11 @@ void atomicassets::internal_transfer(
       //This asset is later deleted again.
       //This action will therefore fail is the scope_payer didn't authorize the action
       to_assets.emplace(scope_payer, [&](auto& _asset) {
-        _asset.id = ULLONG_MAX;
-        _asset.preset_id = 0;
-        _asset.ram_payer = name("");
+        _asset.asset_id = ULLONG_MAX;
+        _asset.collection_name = name("");
+        _asset.scheme_name = name("");
+        _asset.preset_id = -1;
+        _asset.ram_payer = scope_payer;
         _asset.backed_core_amount = 0;
         _asset.immutable_serialized_data = {};
         _asset.mutable_serialized_data = {};
@@ -848,7 +856,9 @@ void atomicassets::internal_transfer(
     }
 
     to_assets.emplace(asset_itr->ram_payer, [&](auto& _asset) {
-      _asset.id = asset_itr->id;
+      _asset.asset_id = asset_itr->asset_id;
+      _asset.collection_name = asset_itr->collection_name;
+      _asset.scheme_name = asset_itr->scheme_name;
       _asset.preset_id = asset_itr->preset_id;
       _asset.ram_payer = asset_itr->ram_payer;
       _asset.backed_core_amount = asset_itr->backed_core_amount;
@@ -880,6 +890,11 @@ void atomicassets::internal_transfer(
 
 atomicassets::assets_t atomicassets::get_assets(name acc) {
   return assets_t(get_self(), acc.value);
+}
+
+
+atomicassets::schemes_t atomicassets::get_schemes(name collection_name) {
+  return schemes_t(get_self(), collection_name.value);
 }
 
 

@@ -501,14 +501,22 @@ namespace atomicdata {
         uint64_t number = 0;
         vector<uint8_t> serialized_data = {};
         for (FORMAT line : format_lines) {
-            if (attr_map.count(line.name) == 1) {
+            auto attribute_itr = attr_map.find(line.name);
+            if (attribute_itr != attr_map.end()) {
                 vector<uint8_t> identifier = toVarintBytes(number + RESERVED);
                 serialized_data.insert(serialized_data.end(), identifier.begin(), identifier.end());
 
-                vector<uint8_t> child_data = serialize_attribute(line.type, attr_map.at(line.name));
+                vector<uint8_t> child_data = serialize_attribute(line.type, attribute_itr->second);
                 serialized_data.insert(serialized_data.end(), child_data.begin(), child_data.end());
+
+                attr_map.erase(attribute_itr);
             }
             number++;
+        }
+        if (attr_map.begin() != attr_map.end()) {
+            check(false,
+            "The following attribute could not be serialized, because it is not specified in the provided format: "
+            + attr_map.begin()->first);
         }
         return serialized_data;
     }

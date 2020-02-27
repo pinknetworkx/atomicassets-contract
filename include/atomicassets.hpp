@@ -25,6 +25,8 @@ ACTION logtransfer(
 ACTION logmint(
   name minter,
   uint64_t asset_id,
+  name collection_name,
+  name scheme_name,
   uint32_t preset_id,
   name new_owner
 );
@@ -47,15 +49,14 @@ ACTION logbackasset(
 );
 
 ACTION lognewpreset(
-  uint32_t preset_id;
+  int32_t preset_id;
   name authorized_creator,
-  name scheme_name,
   name collection_name,
+  name scheme_name,
   bool transferable,
   bool burnable,
-  uint64_t max_supply,
-  ATTRIBUTE_MAP immutable_data,
-  ATTRIBUTE_MAP mutable_data
+  uint16_t max_supply,
+  ATTRIBUTE_MAP immutable_data
 );
 
 ACTION setpredata(
@@ -79,16 +80,6 @@ CONTRACT atomicassets : public contract {
       name to,
       vector<uint64_t> asset_ids,
       string memo
-    );
-    
-    ACTION createscheme(
-      name author,
-      name scheme_name,
-      vector<FORMAT> scheme_format
-    );
-    ACTION extendscheme(
-      name scheme_name,
-      vector<FORMAT> scheme_format_extension
     );
     
     ACTION createcol(
@@ -120,25 +111,34 @@ CONTRACT atomicassets : public contract {
       name account_to_remove
     );
 
+    ACTION createscheme(
+      name authorized_creator,
+      name collection_name,
+      name scheme_name,
+      vector<FORMAT> scheme_format
+    );
+    ACTION extendscheme(
+      name authorized_editor,
+      name collection_name,
+      name scheme_name,
+      vector<FORMAT> scheme_format_extension
+    );
+
     ACTION createpreset(
       name authorized_creator,
-      name scheme_name,
       name collection_name,
+      name scheme_name,
       bool transferable,
       bool burnable,
-      uint64_t max_supply,
-      ATTRIBUTE_MAP immutable_data,
-      ATTRIBUTE_MAP mutable_data
-    );
-    ACTION setpredata(
-      name authorized_editor,
-      uint32_t preset_id,
-      ATTRIBUTE_MAP new_mutable_data
+      uint16_t max_supply,
+      ATTRIBUTE_MAP immutable_data
     );
 
     ACTION mintasset(
       name authorized_minter,
-      uint32_t preset_id,
+      name collection_name,
+      name scheme_name,
+      int32_t preset_id,
       name new_owner,
       ATTRIBUTE_MAP immutable_data,
       ATTRIBUTE_MAP mutable_data
@@ -184,19 +184,20 @@ CONTRACT atomicassets : public contract {
       name scope_payer
     );
     ACTION lognewpreset(
-      uint32_t preset_id,
+      int32_t preset_id,
       name authorized_creator,
       name scheme_name,
       name collection_name,
       bool transferable,
       bool burnable,
-      uint64_t max_supply,
-      ATTRIBUTE_MAP immutable_data,
-      ATTRIBUTE_MAP mutable_data
+      uint16_t max_supply,
+      ATTRIBUTE_MAP immutable_data
     );
     ACTION logmint(
       name minter,
       uint64_t asset_id,
+      name collection_name,
+      name scheme_name,
       uint32_t preset_id,
       name new_owner
     );
@@ -208,16 +209,6 @@ CONTRACT atomicassets : public contract {
 
 
   private:
-
-    TABLE schemes_s {
-      name                scheme_name;
-      name                author;
-      vector<FORMAT>      format;
-
-      uint64_t primary_key() const { return scheme_name.value; }
-    };
-    typedef multi_index<name("schemes"), schemes_s> schemes_t;
-    
 
     TABLE collections_s {
       name                collection_name;
@@ -232,31 +223,42 @@ CONTRACT atomicassets : public contract {
     typedef multi_index<name("collections"), collections_s> collections_t;
 
 
-    TABLE presets_s {
-      uint32_t            id;
+    //Scope: collection_name
+    TABLE schemes_s {
       name                scheme_name;
+      vector<FORMAT>      format;
+
+      uint64_t primary_key() const { return scheme_name.value; }
+    };
+    typedef multi_index<name("schemes"), schemes_s> schemes_t;
+
+
+    TABLE presets_s {
+      uint32_t            preset_id;
       name                collection_name;
+      name                scheme_name;
       bool                transferable;
       bool                burnable;
-      vector<uint8_t>     max_supply;
-      vector<uint8_t>     issued_supply;
+      uint16_t            max_supply;
+      uint16_t            issued_supply;
       vector<uint8_t>     immutable_serialized_data;
-      vector<uint8_t>     mutable_serialized_data;
 
-      uint64_t primary_key() const { return uint64_t{id}; }
+      uint64_t primary_key() const { return uint64_t{preset_id}; }
     };
     typedef multi_index<name("presets"), presets_s> presets_t;
 
     //Scope: owner
     TABLE assets_s {
-      uint64_t            id;
-      uint32_t            preset_id;
+      uint64_t            asset_id;
+      name                collection_name;
+      name                scheme_name;
+      int32_t             preset_id;
       name                ram_payer;
       uint64_t            backed_core_amount;
       vector<uint8_t>     immutable_serialized_data;
       vector<uint8_t>     mutable_serialized_data;
 
-      uint64_t primary_key() const { return id; };
+      uint64_t primary_key() const { return asset_id; };
     };
     typedef multi_index<name("assets"), assets_s> assets_t;
     
@@ -289,13 +291,12 @@ CONTRACT atomicassets : public contract {
 
     TABLE tokenconfigs_s {
       name           standard = name("atomicassets");
-      std::string    version = string("0.1.0");
+      std::string    version = string("0.2.0");
     };
     typedef singleton<name("tokenconfigs"), tokenconfigs_s> tokenconfigs_t;
 
 
 
-    schemes_t schemes = schemes_t(get_self(), get_self().value);
     collections_t collections = collections_t(get_self(), get_self().value);
     presets_t presets = presets_t(get_self(), get_self().value);
     offers_t offers = offers_t(get_self(), get_self().value);
@@ -312,6 +313,8 @@ CONTRACT atomicassets : public contract {
     );
 
     assets_t get_assets(name acc);
+
+    schemes_t get_schemes(name collection_name);
 
     vector<uint8_t> int_to_byte_vector(uint64_t number);
 
