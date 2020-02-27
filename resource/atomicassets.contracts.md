@@ -105,13 +105,13 @@ Transfers that do not serve any purpose other than spamming the recipient are no
 ---
 spec_version: "0.2.0"
 title: Create a scheme
-summary: '{{nowrap author}} creates a new scheme with the name {{nowrap scheme_name}}'
+summary: '{{nowrap authorized_creator}} creates a new scheme with the name {{nowrap scheme_name}}'
 icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CFBABF46534F48345BF6453090554C52D5
 ---
 
 <b>Description:</b>
 <div class="description">
-{{author}} creates a new scheme with the name {{scheme_name}}. This scheme can be referenced by anyone when creating presets, and is therefore not exclusive to {{author}}.
+{{authorized_creator}} creates a new scheme with the name {{scheme_name}}. This scheme belongs to the collection {{collection_name}}
 
 {{#if scheme_format}}The scheme will be initialized with the following FORMAT lines that can be used to serialize preset and asset data:
     {{#each scheme_format}}
@@ -120,12 +120,14 @@ icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CF
 {{else}}The scheme will be initialized without any FORMAT lines.
 {{/if}}
 
-Only {{author}} will be able to extend the scheme by adding additional FORMAT lines in the future, but {{author}} will not be able to delete previously added FORMAT lines.
+Only authorized accounts of the {{collection_name}} collection will be able to extend the scheme by adding additional FORMAT lines in the future, but they will not be able to delete previously added FORMAT lines.
 </div>
 
 <b>Clauses:</b>
 <div class="clauses">
-This action may only be called with the permission of {{author}}.
+This action may only be called with the permission of {{authorized_creator}}.
+
+{{authorized_creator}} has to be an authorized account in the collection {{collection_name}}.
 
 Creating schemes with the purpose of confusing or taking advantage of others, especially by impersonating other well known brands, personalities or dapps is not allowed.
 </div>
@@ -144,7 +146,7 @@ icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CF
 
 <b>Description:</b>
 <div class="description">
-The scheme {{scheme_name}} is extended by adding the following FORMAT lines that can be used to serialize preset and asset data:
+The scheme {{scheme_name}} belonging to the collection {{collection_name}} is extended by adding the following FORMAT lines that can be used to serialize preset and asset data:
 {{#each scheme_format_extension}}
     - name: {{this.name}} , type: {{this.type}}
 {{/each}}
@@ -152,7 +154,9 @@ The scheme {{scheme_name}} is extended by adding the following FORMAT lines that
 
 <b>Clauses:</b>
 <div class="clauses">
-This action may only be called with the permission of the scheme's author.
+This action may only be called with the permission of {{authorized_editor}}.
+
+{{authorized_editor}} has to be an authorized account in the collection {{collection_name}}.
 </div>
 
 
@@ -335,7 +339,7 @@ This action may only be called with the permission of the collection's author.
 
 
 
-<h1 class="contract">createpre</h1>
+<h1 class="contract">createpreset</h1>
 
 ---
 spec_version: "0.2.0"
@@ -348,7 +352,7 @@ icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CF
 <div class="description">
 {{authorized_creator}} creates a new preset which belongs to the {{collection_name}} collection.
 
-The scheme {{scheme_name}} is used for the serialization of the preset's data, as well as the data of any assets within this preset.
+The scheme {{scheme_name}} is used for the serialization of the preset's data.
 
 {{#if transferable}}The assets within this preset will be transferable
 {{else}}The assets within this preset will not be transferable
@@ -368,13 +372,6 @@ The scheme {{scheme_name}} is used for the serialization of the preset's data, a
     {{/each}}
 {{else}}No immutable data is set for the preset.
 {{/if}}
-
-{{#if mutable_data}}The mutable data of the preset is set to:
-    {{#each mutable_data}}
-        - name: {{this.key}} , value: {{this.value}}
-    {{/each}}
-{{else}}No mutable data is set for the preset.
-{{/if}}
 </div>
 
 <b>Clauses:</b>
@@ -387,47 +384,18 @@ This action may only be called with the permission of {{authorized_creator}}.
 
 
 
-<h1 class="contract">editpredata</h1>
-
----
-spec_version: "0.2.0"
-title: Edit the mutable data of a preset
-summary: '{{nowrap authorized_editor}} sets the mutable data of the preset with the id {{nowrap preset_id}}'
-icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CFBABF46534F48345BF6453090554C52D5
----
-
-<b>Description:</b>
-<div class="description">
-{{#if new_mutable_data}}{{authorized_editor}} sets the mutable data of the preset with the id {{preset_id}} to the following:
-    {{#each new_mutable_data}}
-        - name: {{this.key}} , value: {{this.value}}
-    {{/each}}
-{{else}}{{authorized_editor}} clears the mutable data of the preset with the id {{preset_id}}.
-{{/if}}
-</div>
-
-<b>Clauses:</b>
-<div class="clauses">
-This action may only be called with the permission of {{authorized_editor}}.
-
-{{authorized_editor}} has to be an authorized account in the collection that this preset with the id {{preset_id}} belongs to.
-</div>
-
-
-
-
 <h1 class="contract">mintasset</h1>
 
 ---
 spec_version: "0.2.0"
 title: Mint an asset
-summary: '{{nowrap authorized_minter}} mints an asset of the preset with the id {{nowrap preset_id}} which will be owned by {{nowrap new_owner}}'
+summary: '{{nowrap authorized_minter}} mints an asset which will be owned by {{nowrap new_owner}}'
 icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CFBABF46534F48345BF6453090554C52D5
 ---
 
 <b>Description:</b>
 <div class="description">
-{{authorized_minter}} mints an asset of the preset with the id {{preset_id}}. The asset will be owned by {{new_owner}}.
+{{authorized_minter}} mints an asset of the preset which belongs to the {{scheme_name}} scheme of the {{collection_name}} collection. The asset will be owned by {{new_owner}}.
 
 {{#if immutable_data}}The immutable data of the asset is set to:
     {{#each immutable_data}}
@@ -451,16 +419,18 @@ This action may only be called with the permission of {{authorized_minter}}.
 {{authorized_minter}} has to be an authorized account in the collection that the preset with the id {{preset_id}} belongs to.
 
 Minting assets with the purpose of confusing or taking advantage of others, especially by impersonating other well known brands, personalities or dapps is not allowed.
+
+Minting assets with the purpose of spamming or otherwise negatively impacing {{new_owner}} is not allowed.
 </div>
 
 
 
 
-<h1 class="contract">editasstdata</h1>
+<h1 class="contract">setassetdata</h1>
 
 ---
 spec_version: "0.2.0"
-title: Edit the mutable data of an asset
+title: Set the mutable data of an asset
 summary: '{{nowrap authorized_editor}} sets the mutable data of the asset with the id {{nowrap asset_id}} owned by {{nowrap owner}}'
 icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CFBABF46534F48345BF6453090554C52D5
 ---
