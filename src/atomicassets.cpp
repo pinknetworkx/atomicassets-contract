@@ -328,7 +328,7 @@ ACTION atomicassets::createpreset(
   name scheme_name,
   bool transferable,
   bool burnable,
-  uint16_t max_supply,
+  uint32_t max_supply,
   ATTRIBUTE_MAP immutable_data
 ) {
   require_auth(authorized_creator);
@@ -413,10 +413,10 @@ ACTION atomicassets::mintasset(
     if (preset_itr->max_supply > 0) {
       check (preset_itr->issued_supply < preset_itr->max_supply,
       "The preset's maxsupply has already been reached");
-      presets.modify(preset_itr, same_payer, [&](auto& _preset) {
-        _preset.issued_supply += 1;
-      });
     }
+    presets.modify(preset_itr, same_payer, [&](auto& _preset) {
+      _preset.issued_supply += 1;
+    });
   } else {
     check(preset_id == -1, "The preset id must either be an existing preset or -1");
   }
@@ -753,7 +753,7 @@ ACTION atomicassets::lognewpreset(
   name scheme_name,
   bool transferable,
   bool burnable,
-  uint16_t max_supply,
+  uint32_t max_supply,
   ATTRIBUTE_MAP immutable_data
 ) {
   require_auth(get_self());

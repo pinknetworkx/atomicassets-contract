@@ -55,7 +55,7 @@ ACTION lognewpreset(
   name scheme_name,
   bool transferable,
   bool burnable,
-  uint16_t max_supply,
+  uint32_t max_supply,
   ATTRIBUTE_MAP immutable_data
 );
 
@@ -130,7 +130,7 @@ CONTRACT atomicassets : public contract {
       name scheme_name,
       bool transferable,
       bool burnable,
-      uint16_t max_supply,
+      uint32_t max_supply,
       ATTRIBUTE_MAP immutable_data
     );
 
@@ -190,7 +190,7 @@ CONTRACT atomicassets : public contract {
       name collection_name,
       bool transferable,
       bool burnable,
-      uint16_t max_supply,
+      uint32_t max_supply,
       ATTRIBUTE_MAP immutable_data
     );
     ACTION logmint(
@@ -239,13 +239,14 @@ CONTRACT atomicassets : public contract {
       name                scheme_name;
       bool                transferable;
       bool                burnable;
-      uint16_t            max_supply;
-      uint16_t            issued_supply;
+      uint32_t            max_supply;
+      uint32_t            issued_supply;
       vector<uint8_t>     immutable_serialized_data;
 
       uint64_t primary_key() const { return uint64_t{preset_id}; }
     };
     typedef multi_index<name("presets"), presets_s> presets_t;
+
 
     //Scope: owner
     TABLE assets_s {
