@@ -189,6 +189,10 @@ icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CF
 {{else}}No accounts are added to the notify_accounts list.
 {{/if}}
 
+{{#if allow_notify}}It will be possible to add more accounts to the notify_accounts list later.
+{{else}}It will not be possible to add more accounts to the notify_accounts list later.
+{{/if}}
+
 The market_fee for this collection will be set to {{market_fee}}. 3rd party markets are encouraged to use this value to collect fees for the collection author, but are not required to do so.
 
 {{#if data}}The collections will be initialized with the following data:
@@ -353,6 +357,29 @@ icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CF
 <b>Description:</b>
 <div class="description">
 The market_fee for the collection {{collection_name}} will be set to {{market_fee}}. 3rd party markets are encouraged to use this value to collect fees for the collection author, but are not required to do so.
+</div>
+
+<b>Clauses:</b>
+<div class="clauses">
+This action may only be called with the permission of the collection's author.
+</div>
+
+
+
+
+<h1 class="contract">forbidnotify</h1>
+
+---
+spec_version: "0.2.0"
+title: Disallow collection notifications
+summary: 'Sets the allow_notify value of the collection {{nowrap collection_name}} to false'
+icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CFBABF46534F48345BF6453090554C52D5
+---
+
+<b>Description:</b>
+<div class="description">
+The allow_notify value of the collection {{collection_name}} is set to false.
+This means that it will not be possible to add accounts to the notify_accounts list later.
 </div>
 
 <b>Clauses:</b>

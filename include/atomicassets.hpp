@@ -115,6 +115,9 @@ CONTRACT atomicassets : public contract {
       name collection_name,
       double market_fee
     );
+    ACTION forbidnotify(
+      name collection_name
+    );
 
     ACTION createscheme(
       name authorized_creator,

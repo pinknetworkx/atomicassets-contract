@@ -266,6 +266,29 @@ ACTION atomicassets::setmarketfee(
 }
 
 
+/**
+* Sets allow_notify to false for a collection where it has previously been true
+* The collection's notify_accounts list must be empty
+* @required_auth The collection author
+*/
+ACTION atomicassets::forbidnotify(
+  name collection_name
+) {
+  auto collection_itr = collections.require_find(collection_name.value,
+  "No collection with this name exists");
+  
+  require_auth(collection_itr->author);
+
+  check(collection_itr->notify_accounts.size() == 0, "The collection's notify_accounts vector must be empty");
+
+  check(collection_itr->allow_notify, "allow_notify is already false for this collection");
+
+  collections.modify(collection_itr, same_payer, [&](auto& _collection) {
+    _collection.allow_notify = false;
+  });
+}
+
+
 
 /**
 *  Creates a new scheme
