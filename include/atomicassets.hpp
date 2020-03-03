@@ -85,9 +85,10 @@ CONTRACT atomicassets : public contract {
     ACTION createcol(
       name author,
       name collection_name,
+      bool allow_notify,
       vector<name> authorized_accounts,
       vector<name> notify_accounts,
-      bool allow_notify,
+      double market_fee,
       ATTRIBUTE_MAP data
     );
     ACTION setcoldata(
@@ -109,6 +110,10 @@ CONTRACT atomicassets : public contract {
     ACTION remnotifyacc(
       name collection_name,
       name account_to_remove
+    );
+    ACTION setmarketfee(
+      name collection_name,
+      double market_fee
     );
 
     ACTION createscheme(
@@ -213,9 +218,10 @@ CONTRACT atomicassets : public contract {
     TABLE collections_s {
       name                collection_name;
       name                author;
+      bool                allow_notify;
       vector<name>        authorized_accounts;
       vector<name>        notify_accounts;
-      bool                allow_notify;
+      double              market_fee;
       vector<uint8_t>     serialized_data;
 
       uint64_t primary_key() const { return collection_name.value; };
