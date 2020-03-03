@@ -27,14 +27,15 @@ ACTION logmint(
   uint64_t asset_id,
   name collection_name,
   name scheme_name,
-  uint32_t preset_id,
+  int32_t preset_id,
   name new_owner
 );
 
 ACTION setassetdata(
-  name editor,
+  name authorized_editor,
+  name owner,
   uint64_t asset_id,
-  name new_owner
+  ATTRIBUTE_MAP new_mutable_data
 );
 
 ACTION burnasset(
@@ -57,12 +58,6 @@ ACTION lognewpreset(
   bool burnable,
   uint32_t max_supply,
   ATTRIBUTE_MAP immutable_data
-);
-
-ACTION setpredata(
-  name authorized_editor,
-  uint32_t preset_id,
-  ATTRIBUTE_MAP new_mutable_data
 );
 
 */
@@ -206,7 +201,7 @@ CONTRACT atomicassets : public contract {
       uint64_t asset_id,
       name collection_name,
       name scheme_name,
-      uint32_t preset_id,
+      int32_t preset_id,
       name new_owner
     );
     ACTION logbackasset(

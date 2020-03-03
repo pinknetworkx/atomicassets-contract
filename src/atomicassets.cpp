@@ -821,7 +821,7 @@ ACTION atomicassets::logmint(
   uint64_t asset_id,
   name collection_name,
   name scheme_name,
-  uint32_t preset_id,
+  int32_t preset_id,
   name new_owner
 ) {
   require_auth(get_self());
