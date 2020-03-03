@@ -1,6 +1,7 @@
 #include <atomicassets.hpp>
 
 static constexpr symbol CORE_SYMBOL = symbol("WAX", 8);
+static constexpr double MAX_MARKET_FEE = 0.15;
 
 /**
 *  Initializes the config table. Only needs to be called once when first deploying the contract
@@ -65,9 +66,10 @@ ACTION atomicassets::transfer(
 ACTION atomicassets::createcol(
   name author,
   name collection_name,
+  bool allow_notify,
   vector<name> authorized_accounts,
   vector<name> notify_accounts,
-  bool allow_notify,
+  double market_fee,
   ATTRIBUTE_MAP data
 ) {
   require_auth(author);
@@ -90,15 +92,19 @@ ACTION atomicassets::createcol(
     check(std::find(notify_accounts.begin(), notify_accounts.end(), *itr) == itr,
     "You can't have duplicates in the notify_accounts");
   }
+
+  check(0 <= market_fee && market_fee <= MAX_MARKET_FEE,
+  "The market_fee must be between 0 and " + to_string(MAX_MARKET_FEE));
   
   auto current_config = config.get();
 
   collections.emplace(author, [&](auto& _collection) {
     _collection.collection_name = collection_name;
     _collection.author = author;
+    _collection.allow_notify = allow_notify;
     _collection.authorized_accounts = authorized_accounts;
     _collection.notify_accounts = notify_accounts;
-    _collection.allow_notify = allow_notify;
+    _collection.market_fee = market_fee;
     _collection.serialized_data = serialize(data, current_config.collection_format);
   });
 }
@@ -238,6 +244,51 @@ ACTION atomicassets::remnotifyacc(
 }
 
 
+/**
+* Sets (changes) the market fee for an existing collection
+* @required_auth The collection author
+*/
+ACTION atomicassets::setmarketfee(
+  name collection_name,
+  double market_fee
+) {
+  auto collection_itr = collections.require_find(collection_name.value,
+  "No collection with this name exists");
+  
+  require_auth(collection_itr->author);
+
+  check(0 <= market_fee && market_fee <= MAX_MARKET_FEE,
+  "The market_fee must be between 0 and " + to_string(MAX_MARKET_FEE));
+
+  collections.modify(collection_itr, same_payer, [&](auto& _collection) {
+    _collection.market_fee = market_fee;
+  });
+}
+
+
+/**
+* Sets allow_notify to false for a collection where it has previously been true
+* The collection's notify_accounts list must be empty
+* @required_auth The collection author
+*/
+ACTION atomicassets::forbidnotify(
+  name collection_name
+) {
+  auto collection_itr = collections.require_find(collection_name.value,
+  "No collection with this name exists");
+  
+  require_auth(collection_itr->author);
+
+  check(collection_itr->notify_accounts.size() == 0, "The collection's notify_accounts vector must be empty");
+
+  check(collection_itr->allow_notify, "allow_notify is already false for this collection");
+
+  collections.modify(collection_itr, same_payer, [&](auto& _collection) {
+    _collection.allow_notify = false;
+  });
+}
+
+
 
 /**
 *  Creates a new scheme
@@ -328,7 +379,7 @@ ACTION atomicassets::createpreset(
   name scheme_name,
   bool transferable,
   bool burnable,
-  uint16_t max_supply,
+  uint32_t max_supply,
   ATTRIBUTE_MAP immutable_data
 ) {
   require_auth(authorized_creator);
@@ -413,10 +464,10 @@ ACTION atomicassets::mintasset(
     if (preset_itr->max_supply > 0) {
       check (preset_itr->issued_supply < preset_itr->max_supply,
       "The preset's maxsupply has already been reached");
-      presets.modify(preset_itr, same_payer, [&](auto& _preset) {
-        _preset.issued_supply += 1;
-      });
     }
+    presets.modify(preset_itr, same_payer, [&](auto& _preset) {
+      _preset.issued_supply += 1;
+    });
   } else {
     check(preset_id == -1, "The preset id must either be an existing preset or -1");
   }
@@ -753,7 +804,7 @@ ACTION atomicassets::lognewpreset(
   name scheme_name,
   bool transferable,
   bool burnable,
-  uint16_t max_supply,
+  uint32_t max_supply,
   ATTRIBUTE_MAP immutable_data
 ) {
   require_auth(get_self());

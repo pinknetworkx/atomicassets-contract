@@ -55,7 +55,7 @@ ACTION lognewpreset(
   name scheme_name,
   bool transferable,
   bool burnable,
-  uint16_t max_supply,
+  uint32_t max_supply,
   ATTRIBUTE_MAP immutable_data
 );
 
@@ -85,9 +85,10 @@ CONTRACT atomicassets : public contract {
     ACTION createcol(
       name author,
       name collection_name,
+      bool allow_notify,
       vector<name> authorized_accounts,
       vector<name> notify_accounts,
-      bool allow_notify,
+      double market_fee,
       ATTRIBUTE_MAP data
     );
     ACTION setcoldata(
@@ -110,6 +111,13 @@ CONTRACT atomicassets : public contract {
       name collection_name,
       name account_to_remove
     );
+    ACTION setmarketfee(
+      name collection_name,
+      double market_fee
+    );
+    ACTION forbidnotify(
+      name collection_name
+    );
 
     ACTION createscheme(
       name authorized_creator,
@@ -130,7 +138,7 @@ CONTRACT atomicassets : public contract {
       name scheme_name,
       bool transferable,
       bool burnable,
-      uint16_t max_supply,
+      uint32_t max_supply,
       ATTRIBUTE_MAP immutable_data
     );
 
@@ -190,7 +198,7 @@ CONTRACT atomicassets : public contract {
       name collection_name,
       bool transferable,
       bool burnable,
-      uint16_t max_supply,
+      uint32_t max_supply,
       ATTRIBUTE_MAP immutable_data
     );
     ACTION logmint(
@@ -213,9 +221,10 @@ CONTRACT atomicassets : public contract {
     TABLE collections_s {
       name                collection_name;
       name                author;
+      bool                allow_notify;
       vector<name>        authorized_accounts;
       vector<name>        notify_accounts;
-      bool                allow_notify;
+      double              market_fee;
       vector<uint8_t>     serialized_data;
 
       uint64_t primary_key() const { return collection_name.value; };
@@ -239,13 +248,14 @@ CONTRACT atomicassets : public contract {
       name                scheme_name;
       bool                transferable;
       bool                burnable;
-      uint16_t            max_supply;
-      uint16_t            issued_supply;
+      uint32_t            max_supply;
+      uint32_t            issued_supply;
       vector<uint8_t>     immutable_serialized_data;
 
       uint64_t primary_key() const { return uint64_t{preset_id}; }
     };
     typedef multi_index<name("presets"), presets_s> presets_t;
+
 
     //Scope: owner
     TABLE assets_s {
