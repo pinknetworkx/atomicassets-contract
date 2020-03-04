@@ -506,6 +506,31 @@ This action may only be called with the permission of {{authorized_editor}}.
 
 
 
+<h1 class="contract">backsymbol</h1>
+
+---
+spec_version: "0.2.0"
+title: Add a symbol to be backed
+summary: '{{nowrap ram_payer}} adds the symbol {{nowrap symbol_to_announce}} to the asset with the id {{nowrap asset_id}}'
+icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CFBABF46534F48345BF6453090554C52D5
+---
+
+<b>Description:</b>
+<div class="description">
+This action is used to add a zero value asset to the backed_tokens vector of the asset with the id {{asset_id}}.
+Adding something to a vector increases the RAM required, therefore this can't be done directly in the receipt of the transfer action, so using this action a zero value is added so that the RAM required doesn't change when adding the received quantity in the transfer action later.
+
+By calling this action, {{ram_payer}} pays for the compelte RAM of the asset.
+</div>
+
+<b>Clauses:</b>
+<div class="clauses">
+This action may only be called with the permission of {{ram_payer}}.
+</div>
+
+
+
+
 <h1 class="contract">burnasset</h1>
 
 ---
