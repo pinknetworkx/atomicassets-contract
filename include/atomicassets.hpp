@@ -152,6 +152,12 @@ CONTRACT atomicassets : public contract {
       uint64_t asset_id,
       ATTRIBUTE_MAP new_mutable_data
     );
+    ACTION backsymbol(
+      name ram_payer,
+      name owner,
+      uint64_t asset_id,
+      symbol symbol_to_announce
+    );
     ACTION burnasset(
       name owner,
       uint64_t asset_id
@@ -259,7 +265,7 @@ CONTRACT atomicassets : public contract {
       name                scheme_name;
       int32_t             preset_id;
       name                ram_payer;
-      uint64_t            backed_core_amount;
+      vector<asset>       backed_tokens;
       vector<uint8_t>     immutable_serialized_data;
       vector<uint8_t>     mutable_serialized_data;
 

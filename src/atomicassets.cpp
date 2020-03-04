@@ -1,6 +1,6 @@
 #include <atomicassets.hpp>
 
-static constexpr symbol CORE_SYMBOL = symbol("WAX", 8);
+static constexpr symbol WAX_SYMBOL = symbol("WAX", 8);
 static constexpr double MAX_MARKET_FEE = 0.15;
 
 /**
@@ -476,6 +476,8 @@ ACTION atomicassets::mintasset(
   auto scheme_itr = collection_schemes.require_find(scheme_name.value,
   "No scheme with this name exists");
 
+  check(is_account(new_owner), "The new_owner account does not exist");
+
   auto current_config = config.get();
   uint64_t asset_id = current_config.asset_counter++;
   config.set(current_config, get_self());
@@ -487,7 +489,7 @@ ACTION atomicassets::mintasset(
     _asset.scheme_name = scheme_name;
     _asset.preset_id = preset_id;
     _asset.ram_payer = authorized_minter;
-    _asset.backed_core_amount = 0;
+    _asset.backed_tokens = {};
     _asset.immutable_serialized_data = serialize(immutable_data, scheme_itr->format);
     _asset.mutable_serialized_data = serialize(mutable_data, scheme_itr->format);
   });
@@ -543,6 +545,49 @@ ACTION atomicassets::setassetdata(
 
 
 /**
+* This action is used to add a zero value asset to the backed_tokens vector of an asset
+* Because adding something to a vector increases the RAM required, this can't be done directly in the receipt
+* of the transfer action, so you first add a zero value using the backsymbol action so that the RAM required doesn't
+* change when adding the received quantity in the transfer action later
+*
+* To pass a symbol to eosio as a string, use the following format: <precision>,<symbol_code>
+* So for example: "8,WAX"
+*
+* @required_auth ram_payer
+*/
+ACTION atomicassets::backsymbol(
+  name ram_payer,
+  name owner,
+  uint64_t asset_id,
+  symbol symbol_to_announce
+) {
+  require_auth(ram_payer);
+
+  //More symbols / tokens can be added in the future
+  check(symbol_to_announce == WAX_SYMBOL, "This symbol is not supported");
+
+  assets_t owner_assets = get_assets(owner);
+  auto asset_itr = owner_assets.require_find(asset_id,
+  "No asset with this id exists");
+
+  vector<asset> backed_tokens = asset_itr->backed_tokens;
+
+  for (asset& token : backed_tokens) {
+    if (token.symbol == symbol_to_announce) {
+      check(false, "The asset already has a backed_token entry for this symbol");
+    }
+  }
+
+  backed_tokens.push_back(asset(0, symbol_to_announce));
+
+  owner_assets.modify(asset_itr, ram_payer, [&](auto& _asset) {
+    _asset.ram_payer = ram_payer;
+    _asset.backed_tokens = backed_tokens;
+  });
+}
+
+
+/**
 *  Burns (deletes) an asset
 *  Only works if the "burnable" bool in the related preset is true
 *  If the asset has been backed with tokens previously, they are sent to the owner of the asset
@@ -563,21 +608,25 @@ ACTION atomicassets::burnasset(
     check (preset_itr->burnable, "The asset is not burnable");
   };
 
-
-  asset backed_quantity = asset(asset_itr->backed_core_amount, CORE_SYMBOL);
-
-  if (asset_itr->backed_core_amount != 0) {
-    action(
-      permission_level{get_self(), name("active")},
-      name("eosio.token"),
-      name("transfer"),
-      make_tuple(
-        get_self(),
-        owner,
-        backed_quantity,
-        string("Backed asset payout - ID: ") + to_string(asset_id)
-      )
-    ).send();
+  for (asset token : asset_itr->backed_tokens) {
+    if (token.amount == 0) {
+      continue;
+    }
+    if (token.symbol == WAX_SYMBOL) {
+      action(
+        permission_level{get_self(), name("active")},
+        name("eosio.token"),
+        name("transfer"),
+        make_tuple(
+          get_self(),
+          owner,
+          token,
+          string("Backed asset payout - ID: ") + to_string(asset_id)
+        )
+      ).send();
+    } else {
+      check(false, "There is an unrecognized symbol in the backed_tokens of this asset. Data likely correupted.");
+    }
   }
 
   owner_assets.erase(asset_itr);
@@ -740,8 +789,8 @@ void atomicassets::receive_token_transfer(name from, name to, asset quantity, st
   if (to != _self) {
     return;
   }
-  check(quantity.symbol == CORE_SYMBOL,
-  "quantity must be the Core symbol");
+  check(quantity.symbol == WAX_SYMBOL,
+  "quantity must be the wAX symbol");
 
   if (memo.find("back_asset ") == 0) {
     //Format: "back_asset <account name> <assetid>"
@@ -761,8 +810,20 @@ void atomicassets::receive_token_transfer(name from, name to, asset quantity, st
       check(preset_itr->burnable, "Can't back an asset that is not burnable");
     }
 
+    vector<asset> backed_tokens = asset_itr->backed_tokens;
+
+    bool found_wax = false;
+    for (asset& token : backed_tokens) {
+      if (token.symbol == WAX_SYMBOL) {
+        found_wax = true;
+        token.amount += quantity.amount;
+        break;
+      }
+    }
+    check(found_wax, "You first need to announce the asset type you're backing using the backsymbol action");
+
     account_assets.modify(asset_itr, same_payer, [&](auto& _asset) {
-      _asset.backed_core_amount += quantity.amount;
+      _asset.backed_tokens = backed_tokens;
     });
 
     action(
@@ -909,7 +970,7 @@ void atomicassets::internal_transfer(
         _asset.scheme_name = name("");
         _asset.preset_id = -1;
         _asset.ram_payer = scope_payer;
-        _asset.backed_core_amount = 0;
+        _asset.backed_tokens = {};
         _asset.immutable_serialized_data = {};
         _asset.mutable_serialized_data = {};
       });
@@ -921,7 +982,7 @@ void atomicassets::internal_transfer(
       _asset.scheme_name = asset_itr->scheme_name;
       _asset.preset_id = asset_itr->preset_id;
       _asset.ram_payer = asset_itr->ram_payer;
-      _asset.backed_core_amount = asset_itr->backed_core_amount;
+      _asset.backed_tokens = asset_itr->backed_tokens;
       _asset.immutable_serialized_data = asset_itr->immutable_serialized_data;
       _asset.mutable_serialized_data = asset_itr->mutable_serialized_data;
     });
