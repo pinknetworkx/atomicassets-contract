@@ -305,6 +305,8 @@ CONTRACT atomicassets : public contract {
       std::string    version = string("0.2.0");
     };
     typedef singleton<name("tokenconfigs"), tokenconfigs_s> tokenconfigs_t;
+    // https://github.com/EOSIO/eosio.cdt/issues/280
+    typedef multi_index<name("tokenconfigs"), tokenconfigs_s> tokenconfigs_t_for_abi;
 
 
 
