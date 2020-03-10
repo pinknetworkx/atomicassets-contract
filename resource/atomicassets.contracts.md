@@ -66,6 +66,29 @@ This action may only be called with the permission of {{$action.account}}.
 
 
 
+<h1 class="contract">addconftoken</h1>
+
+---
+spec_version: "0.2.0"
+title: Add token to supported list
+summary: 'Adds a token that can then be used to back assets'
+icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CFBABF46534F48345BF6453090554C52D5
+---
+<b>Description:</b>
+<div class="description">
+The token with the symbol {{token_symbol}} from the token contract {{token_contract}} is added to the supported_tokens list.
+
+This means that assets can then be backed with that specific token.
+</div>
+
+<b>Clauses:</b>
+<div class="clauses">
+This action may only be called with the permission of {{$action.account}}.
+</div>
+
+
+
+
 <h1 class="contract">transfer</h1>
 
 ---

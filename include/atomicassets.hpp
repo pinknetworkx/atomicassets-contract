@@ -38,15 +38,21 @@ ACTION setassetdata(
   ATTRIBUTE_MAP new_mutable_data
 );
 
-ACTION burnasset(
-  name owner,
-  uint64_t asset_id
-);
-
 ACTION logbackasset(
   name owner,
   uint64_t asset_id,
   asset back_quantity;
+);
+
+ACTION logburnasset(
+  name owner,
+  uint64_t asset_id,
+  name collection_name,
+  name scheme_name,
+  int32_t preset_id,
+  vector<asset> backed_tokens,
+  vector<uint8_t> immutable_serialized_data,
+  vector<uint8_t> mutable_serialized_data
 );
 
 ACTION lognewpreset(
@@ -69,6 +75,7 @@ CONTRACT atomicassets : public contract {
     ACTION init();
     ACTION admincoledit(vector<FORMAT> collection_format_extension);
     ACTION setversion(string new_version);
+    ACTION addconftoken(name token_contract, symbol token_symbol);
 
     ACTION transfer(
       name from,
@@ -180,7 +187,7 @@ CONTRACT atomicassets : public contract {
       uint64_t offer_id
     );
 
-    [[eosio::on_notify("eosio.token::transfer")]] void receive_token_transfer(name from, name to, asset quantity, string memo);
+    void receive_token_transfer(name from, name to, asset quantity, string memo);
     
 
 
@@ -215,9 +222,24 @@ CONTRACT atomicassets : public contract {
       uint64_t asset_id,
       asset back_quantity
     );
+    ACTION logburnasset(
+      name owner,
+      uint64_t asset_id,
+      name collection_name,
+      name scheme_name,
+      int32_t preset_id,
+      vector<asset> backed_tokens,
+      vector<uint8_t> immutable_serialized_data,
+      vector<uint8_t> mutable_serialized_data
+    );
 
 
   private:
+
+    struct TOKEN {
+      name token_contract;
+      symbol token_symbol;
+    };
 
     TABLE collections_s {
       name                collection_name;
@@ -275,14 +297,14 @@ CONTRACT atomicassets : public contract {
     
 
     TABLE offers_s {
-      uint64_t            id;
+      uint64_t            offer_id;
       name                offer_sender;
       name                offer_recipient;
       vector<uint64_t>    sender_asset_ids;
       vector<uint64_t>    recipient_asset_ids;
       string              memo;
 
-      uint64_t primary_key() const { return id; };
+      uint64_t primary_key() const { return offer_id; };
       uint64_t by_sender() const { return offer_sender.value; };
       uint64_t by_recipient() const { return offer_recipient.value; };
     };
@@ -294,7 +316,8 @@ CONTRACT atomicassets : public contract {
     TABLE config_s {
       uint64_t            asset_counter = 1099511627780; //2^40
       uint64_t            offer_counter = 0;
-      vector<FORMAT> collection_format = {};
+      vector<FORMAT>      collection_format = {};
+      vector<TOKEN>       supported_tokens = {};
     };
     typedef singleton<name("config"), config_s> config_t;
     // https://github.com/EOSIO/eosio.cdt/issues/280
@@ -329,3 +352,21 @@ CONTRACT atomicassets : public contract {
 
     schemes_t get_schemes(name collection_name);
 };
+
+extern "C"
+void apply(uint64_t receiver, uint64_t code, uint64_t action)
+{
+	if (code == receiver) {
+		switch (action) {
+      EOSIO_DISPATCH_HELPER(atomicassets, \
+      (init)(admincoledit)(setversion)(addconftoken)(transfer) \
+      (createcol)(setcoldata)(addcolauth)(remcolauth)(addnotifyacc)(remnotifyacc) \
+      (setmarketfee)(forbidnotify)(createscheme)(extendscheme)(createpreset) \
+      (mintasset)(setassetdata)(backsymbol)(burnasset) \
+      (createoffer)(canceloffer)(acceptoffer)(declineoffer) \
+      (logtransfer)(lognewpreset)(logmint)(logbackasset)(logburnasset))
+		}
+	} else if (action == name("transfer").value) {
+    eosio::execute_action(name(receiver), name(code), &atomicassets::receive_token_transfer);
+  }
+}
