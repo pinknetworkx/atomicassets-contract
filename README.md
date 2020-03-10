@@ -22,7 +22,7 @@ It focuses heavily on RAM efficiency and usability and is deployed under the nam
 	
 - **Minimal fixed RAM costs**
 
-	Creating an asset only costs **142 bytes** (112 of which are for the necessary index). Additionally, each token owner needs to have a scope, which costs **112 bytes**. 
+	Creating an asset only costs **151 bytes** (112 of which are for the necessary index). Additionally, each token owner needs to have a scope, which costs **112 bytes**. 
 	
 - **Notifications for Smart Contracts**
 
