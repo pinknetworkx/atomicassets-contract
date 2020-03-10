@@ -281,14 +281,14 @@ CONTRACT atomicassets : public contract {
     
 
     TABLE offers_s {
-      uint64_t            id;
+      uint64_t            offer_id;
       name                offer_sender;
       name                offer_recipient;
       vector<uint64_t>    sender_asset_ids;
       vector<uint64_t>    recipient_asset_ids;
       string              memo;
 
-      uint64_t primary_key() const { return id; };
+      uint64_t primary_key() const { return offer_id; };
       uint64_t by_sender() const { return offer_sender.value; };
       uint64_t by_recipient() const { return offer_recipient.value; };
     };

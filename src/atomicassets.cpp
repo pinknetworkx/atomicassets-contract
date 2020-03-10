@@ -715,7 +715,7 @@ ACTION atomicassets::createoffer(
 
   config_s current_config = config.get();
   offers.emplace(sender, [&](auto& _offer) {
-    _offer.id = current_config.offer_counter++;
+    _offer.offer_id = current_config.offer_counter++;
     _offer.offer_sender = sender;
     _offer.offer_recipient = recipient;
     _offer.sender_asset_ids = sender_asset_ids;
