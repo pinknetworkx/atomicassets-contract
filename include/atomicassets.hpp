@@ -38,15 +38,21 @@ ACTION setassetdata(
   ATTRIBUTE_MAP new_mutable_data
 );
 
-ACTION burnasset(
-  name owner,
-  uint64_t asset_id
-);
-
 ACTION logbackasset(
   name owner,
   uint64_t asset_id,
   asset back_quantity;
+);
+
+ACTION logburnasset(
+  name owner,
+  uint64_t asset_id,
+  name collection_name,
+  name scheme_name,
+  int32_t preset_id,
+  vector<asset> backed_tokens,
+  vector<uint8_t> immutable_serialized_data,
+  vector<uint8_t> mutable_serialized_data
 );
 
 ACTION lognewpreset(
@@ -216,6 +222,16 @@ CONTRACT atomicassets : public contract {
       uint64_t asset_id,
       asset back_quantity
     );
+    ACTION logburnasset(
+      name owner,
+      uint64_t asset_id,
+      name collection_name,
+      name scheme_name,
+      int32_t preset_id,
+      vector<asset> backed_tokens,
+      vector<uint8_t> immutable_serialized_data,
+      vector<uint8_t> mutable_serialized_data
+    );
 
 
   private:
@@ -348,7 +364,7 @@ void apply(uint64_t receiver, uint64_t code, uint64_t action)
       (setmarketfee)(forbidnotify)(createscheme)(extendscheme)(createpreset) \
       (mintasset)(setassetdata)(backsymbol)(burnasset) \
       (createoffer)(canceloffer)(acceptoffer)(declineoffer) \
-      (logtransfer)(lognewpreset)(logmint)(logbackasset))
+      (logtransfer)(lognewpreset)(logmint)(logbackasset)(logburnasset))
 		}
 	} else if (action == name("transfer").value) {
     eosio::execute_action(name(receiver), name(code), &atomicassets::receive_token_transfer);

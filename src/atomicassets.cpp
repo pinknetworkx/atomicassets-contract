@@ -659,13 +659,23 @@ ACTION atomicassets::burnasset(
     }
   }
 
+  action(
+    permission_level{get_self(), name("active")},
+    get_self(),
+    name("logburnasset"),
+    make_tuple(
+      owner,
+      asset_id,
+      asset_itr->collection_name,
+      asset_itr->scheme_name,
+      asset_itr->scheme_name,
+      asset_itr->backed_tokens,
+      asset_itr->immutable_serialized_data,
+      asset_itr->mutable_serialized_data
+    )
+  ).send();
+
   owner_assets.erase(asset_itr);
-
-
-  auto collection_itr = collections.find(asset_itr->collection_name.value);
-  for (const name& notify_account : collection_itr->notify_accounts) {
-    require_recipient(notify_account);
-  }
 }
 
 
@@ -942,6 +952,25 @@ ACTION atomicassets::logbackasset(
   assets_t owner_assets = get_assets(owner);
   auto asset_itr = owner_assets.find(asset_id);
   auto collection_itr = collections.find(asset_itr->collection_name.value);
+  for (const name& notify_account : collection_itr->notify_accounts) {
+    require_recipient(notify_account);
+  }
+}
+
+
+ACTION atomicassets::logburnasset(
+  name owner,
+  uint64_t asset_id,
+  name collection_name,
+  name scheme_name,
+  int32_t preset_id,
+  vector<asset> backed_tokens,
+  vector<uint8_t> immutable_serialized_data,
+  vector<uint8_t> mutable_serialized_data
+) {
+  require_auth(get_self());
+
+  auto collection_itr = collections.find(collection_name.value);
   for (const name& notify_account : collection_itr->notify_accounts) {
     require_recipient(notify_account);
   }
