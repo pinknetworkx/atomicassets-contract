@@ -36,7 +36,7 @@ ACTION logsetdata(
   uint64_t asset_id,
   vector<uint8_t> old_serialized_data,
   ATTRIBUTE_MAP new_data
-)
+);
 
 ACTION logbackasset(
   name owner,
