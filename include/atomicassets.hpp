@@ -347,7 +347,8 @@ void apply(uint64_t receiver, uint64_t code, uint64_t action)
       (createcol)(setcoldata)(addcolauth)(remcolauth)(addnotifyacc)(remnotifyacc) \
       (setmarketfee)(forbidnotify)(createscheme)(extendscheme)(createpreset) \
       (mintasset)(setassetdata)(backsymbol)(burnasset) \
-      (createoffer)(canceloffer)(acceptoffer)(declineoffer))
+      (createoffer)(canceloffer)(acceptoffer)(declineoffer) \
+      (logtransfer)(lognewpreset)(logmint)(logbackasset))
 		}
 	} else if (action == name("transfer").value) {
     eosio::execute_action(name(receiver), name(code), &atomicassets::receive_token_transfer);
