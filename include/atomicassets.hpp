@@ -69,6 +69,7 @@ CONTRACT atomicassets : public contract {
     ACTION init();
     ACTION admincoledit(vector<FORMAT> collection_format_extension);
     ACTION setversion(string new_version);
+    ACTION addconftoken(name token_contract, symbol token_symbol);
 
     ACTION transfer(
       name from,
@@ -180,7 +181,7 @@ CONTRACT atomicassets : public contract {
       uint64_t offer_id
     );
 
-    [[eosio::on_notify("eosio.token::transfer")]] void receive_token_transfer(name from, name to, asset quantity, string memo);
+    void receive_token_transfer(name from, name to, asset quantity, string memo);
     
 
 
@@ -218,6 +219,11 @@ CONTRACT atomicassets : public contract {
 
 
   private:
+
+    struct TOKEN {
+      name token_contract;
+      symbol token_symbol;
+    };
 
     TABLE collections_s {
       name                collection_name;
@@ -294,7 +300,8 @@ CONTRACT atomicassets : public contract {
     TABLE config_s {
       uint64_t            asset_counter = 1099511627780; //2^40
       uint64_t            offer_counter = 0;
-      vector<FORMAT> collection_format = {};
+      vector<FORMAT>      collection_format = {};
+      vector<TOKEN>       supported_tokens = {};
     };
     typedef singleton<name("config"), config_s> config_t;
     // https://github.com/EOSIO/eosio.cdt/issues/280
@@ -329,3 +336,20 @@ CONTRACT atomicassets : public contract {
 
     schemes_t get_schemes(name collection_name);
 };
+
+extern "C"
+void apply(uint64_t receiver, uint64_t code, uint64_t action)
+{
+	if (code == receiver) {
+		switch (action) {
+      EOSIO_DISPATCH_HELPER(atomicassets, \
+      (init)(admincoledit)(setversion)(addconftoken)(transfer) \
+      (createcol)(setcoldata)(addcolauth)(remcolauth)(addnotifyacc)(remnotifyacc) \
+      (setmarketfee)(forbidnotify)(createscheme)(extendscheme)(createpreset) \
+      (mintasset)(setassetdata)(backsymbol)(burnasset) \
+      (createoffer)(canceloffer)(acceptoffer)(declineoffer))
+		}
+	} else if (action == name("transfer").value) {
+    eosio::execute_action(name(receiver), name(code), &atomicassets::receive_token_transfer);
+  }
+}

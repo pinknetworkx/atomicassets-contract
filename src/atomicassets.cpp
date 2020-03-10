@@ -22,7 +22,7 @@ ACTION atomicassets::admincoledit(vector<atomicdata::FORMAT> collection_format_e
 
   check(collection_format_extension.size() != 0, "Need to add at least one new line");
 
-  auto current_config = config.get();
+  config_s current_config = config.get();
   current_config.collection_format.insert(
     current_config.collection_format.end(),
     collection_format_extension.begin(),
@@ -34,13 +34,39 @@ ACTION atomicassets::admincoledit(vector<atomicdata::FORMAT> collection_format_e
 }
 
 
+/**
+*  Sets the version for the tokenconfigs table
+*  @required_auth The contract itself
+*/
 ACTION atomicassets::setversion(string new_version) {
   require_auth(get_self());
 
-  auto current_tokenconfigs = tokenconfigs.get();
+  tokenconfigs_s current_tokenconfigs = tokenconfigs.get();
   current_tokenconfigs.version = new_version;
   
   tokenconfigs.set(current_tokenconfigs, get_self());
+}
+
+
+/**
+*  Adds a token that can then be backed to assets
+*  @required_auth The contract itself
+*/
+ACTION atomicassets::addconftoken(name token_contract, symbol token_symbol) {
+  require_auth(get_self());
+
+  config_s current_config = config.get();
+  for (TOKEN token : current_config.supported_tokens) {
+    check(token.token_symbol != token_symbol,
+    "A token with this symbol is already supported");
+  }
+
+  current_config.supported_tokens.push_back({
+    .token_contract = token_contract,
+    .token_symbol = token_symbol
+  });
+
+  config.set(current_config, get_self());
 }
 
 
@@ -96,7 +122,7 @@ ACTION atomicassets::createcol(
   check(0 <= market_fee && market_fee <= MAX_MARKET_FEE,
   "The market_fee must be between 0 and " + to_string(MAX_MARKET_FEE));
   
-  auto current_config = config.get();
+  config_s current_config = config.get();
 
   collections.emplace(author, [&](auto& _collection) {
     _collection.collection_name = collection_name;
@@ -124,7 +150,7 @@ ACTION atomicassets::setcoldata(
   
   require_auth(collection_itr->author);
 
-  auto current_config = config.get();
+  config_s current_config = config.get();
   collections.modify(collection_itr, same_payer, [&](auto& _collection) {
     _collection.serialized_data = serialize(data, current_config.collection_format);
   });
@@ -478,7 +504,7 @@ ACTION atomicassets::mintasset(
 
   check(is_account(new_owner), "The new_owner account does not exist");
 
-  auto current_config = config.get();
+  config_s current_config = config.get();
   uint64_t asset_id = current_config.asset_counter++;
   config.set(current_config, get_self());
 
@@ -608,24 +634,28 @@ ACTION atomicassets::burnasset(
     check (preset_itr->burnable, "The asset is not burnable");
   };
 
-  for (asset token : asset_itr->backed_tokens) {
-    if (token.amount == 0) {
+  config_s current_config = config.get();
+
+  for (asset backed_quantity : asset_itr->backed_tokens) {
+    if (backed_quantity.amount == 0) {
       continue;
     }
-    if (token.symbol == WAX_SYMBOL) {
-      action(
-        permission_level{get_self(), name("active")},
-        name("eosio.token"),
-        name("transfer"),
-        make_tuple(
-          get_self(),
-          owner,
-          token,
-          string("Backed asset payout - ID: ") + to_string(asset_id)
-        )
-      ).send();
-    } else {
-      check(false, "There is an unrecognized symbol in the backed_tokens of this asset. Data likely correupted.");
+    for (TOKEN supported_token : current_config.supported_tokens) {
+      if (supported_token.token_symbol == backed_quantity.symbol) {
+        action(
+          permission_level{get_self(), name("active")},
+          supported_token.token_contract,
+          name("transfer"),
+          make_tuple(
+            get_self(),
+            owner,
+            backed_quantity,
+            string("Backed asset payout - ID: ") + to_string(asset_id)
+          )
+        ).send();
+      }
+
+      break;
     }
   }
 
@@ -781,7 +811,7 @@ ACTION atomicassets::declineoffer(
 
 
 /**
-*  This function is called when a transfer receipt from eosio.token is sent to the contract
+*  This function is called when a transfer receipt from any token contract is sent to the atomicassets contract
 *  It handles potential back_asset transfers, which back an asset with tokens which can only be
    released by burning the token, thus giving the token a guranteed value
 */
@@ -789,8 +819,16 @@ void atomicassets::receive_token_transfer(name from, name to, asset quantity, st
   if (to != _self) {
     return;
   }
-  check(quantity.symbol == WAX_SYMBOL,
-  "quantity must be the wAX symbol");
+
+  config_s current_config = config.get();
+
+  bool is_supported = false;
+  for (TOKEN token : current_config.supported_tokens) {
+    if (token.token_contract == get_first_receiver() && token.token_symbol == quantity.symbol) {
+      is_supported = true;
+    }
+  }
+  check(is_supported, "The transferred token is not supported");
 
   if (memo.find("back_asset ") == 0) {
     //Format: "back_asset <account name> <assetid>"
@@ -812,15 +850,15 @@ void atomicassets::receive_token_transfer(name from, name to, asset quantity, st
 
     vector<asset> backed_tokens = asset_itr->backed_tokens;
 
-    bool found_wax = false;
+    bool found_token = false;
     for (asset& token : backed_tokens) {
-      if (token.symbol == WAX_SYMBOL) {
-        found_wax = true;
+      if (token.symbol == quantity.symbol) {
+        found_token = true;
         token.amount += quantity.amount;
         break;
       }
     }
-    check(found_wax, "You first need to announce the asset type you're backing using the backsymbol action");
+    check(found_token, "You first need to announce the asset type you're backing using the backsymbol action");
 
     account_assets.modify(asset_itr, same_payer, [&](auto& _asset) {
       _asset.backed_tokens = backed_tokens;
