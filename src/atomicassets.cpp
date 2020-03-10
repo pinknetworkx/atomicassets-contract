@@ -556,6 +556,15 @@ ACTION atomicassets::setassetdata(
   ) != collection_itr->authorized_accounts.end(),
   "The editor is not authorized within the collection");
 
+
+  action(
+    permission_level{get_self(), name("active")},
+    get_self(),
+    name("logsetdata"),
+    make_tuple(owner, asset_id, asset_itr->mutable_serialized_data, new_mutable_data)
+  ).send();
+
+
   schemes_t collection_schemes = get_schemes(asset_itr->collection_name);
   auto scheme_itr = collection_schemes.find(asset_itr->scheme_name.value);
 
@@ -563,10 +572,6 @@ ACTION atomicassets::setassetdata(
     _asset.ram_payer = authorized_editor;
     _asset.mutable_serialized_data = serialize(new_mutable_data, scheme_itr->format);
   });
-
-  for (const name& notify_account : collection_itr->notify_accounts) {
-    require_recipient(notify_account);
-  }
 }
 
 
@@ -936,6 +941,23 @@ ACTION atomicassets::logmint(
   require_auth(get_self());
 
   auto collection_itr = collections.find(collection_name.value);
+  for (const name& notify_account : collection_itr->notify_accounts) {
+    require_recipient(notify_account);
+  }
+}
+
+
+ACTION atomicassets::logsetdata(
+  name owner,
+  uint64_t asset_id,
+  vector<uint8_t> old_serialized_data,
+  ATTRIBUTE_MAP new_data
+) {
+  require_auth(get_self());
+
+  assets_t owner_assets = get_assets(owner);
+  auto asset_itr = owner_assets.find(asset_id);
+  auto collection_itr = collections.find(asset_itr->collection_name.value);
   for (const name& notify_account : collection_itr->notify_accounts) {
     require_recipient(notify_account);
   }

@@ -31,12 +31,12 @@ ACTION logmint(
   name new_owner
 );
 
-ACTION setassetdata(
-  name authorized_editor,
+ACTION logsetdata(
   name owner,
   uint64_t asset_id,
-  ATTRIBUTE_MAP new_mutable_data
-);
+  vector<uint8_t> old_serialized_data,
+  ATTRIBUTE_MAP new_data
+)
 
 ACTION logbackasset(
   name owner,
@@ -217,6 +217,12 @@ CONTRACT atomicassets : public contract {
       int32_t preset_id,
       name new_owner
     );
+    ACTION logsetdata(
+      name owner,
+      uint64_t asset_id,
+      vector<uint8_t> old_serialized_data,
+      ATTRIBUTE_MAP new_data
+    );
     ACTION logbackasset(
       name owner,
       uint64_t asset_id,
@@ -364,7 +370,7 @@ void apply(uint64_t receiver, uint64_t code, uint64_t action)
       (setmarketfee)(forbidnotify)(createscheme)(extendscheme)(createpreset) \
       (mintasset)(setassetdata)(backsymbol)(burnasset) \
       (createoffer)(canceloffer)(acceptoffer)(declineoffer) \
-      (logtransfer)(lognewpreset)(logmint)(logbackasset)(logburnasset))
+      (logtransfer)(lognewpreset)(logmint)(logsetdata)(logbackasset)(logburnasset))
 		}
 	} else if (action == name("transfer").value) {
     eosio::execute_action(name(receiver), name(code), &atomicassets::receive_token_transfer);
