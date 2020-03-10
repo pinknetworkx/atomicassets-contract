@@ -668,7 +668,7 @@ ACTION atomicassets::burnasset(
       asset_id,
       asset_itr->collection_name,
       asset_itr->scheme_name,
-      asset_itr->scheme_name,
+      asset_itr->preset_id,
       asset_itr->backed_tokens,
       asset_itr->immutable_serialized_data,
       asset_itr->mutable_serialized_data
