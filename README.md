@@ -30,7 +30,7 @@ It focuses heavily on RAM efficiency and usability and is deployed under the nam
 	
 - **Backing assets with Core Tokens**
 
-	Assets can be backed by the respective core token of their network (e.g. EOS/ WAX). Those tokens can only be freed by burning the asset, thus allowing dapps to give their asset a guaranteed intrinsic value.
+	Assets can be backed by standard fungible tokens (e.g. EOS/ WAX). Those tokens can only be freed by burning the asset, thus allowing dapps to give their asset a guaranteed intrinsic value.
 	
 - **Powerful Trade Offers**
 
