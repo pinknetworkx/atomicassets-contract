@@ -468,7 +468,8 @@ ACTION atomicassets::mintasset(
   int32_t preset_id,
   name new_owner,
   ATTRIBUTE_MAP immutable_data,
-  ATTRIBUTE_MAP mutable_data
+  ATTRIBUTE_MAP mutable_data,
+  vector<asset> quantities_to_back
 ) {
   require_auth(authorized_minter);
 
@@ -527,6 +528,12 @@ ACTION atomicassets::mintasset(
     name("logmint"),
     make_tuple(authorized_minter, asset_id, collection_name, scheme_name, preset_id, new_owner)
   ).send();
+
+  //Calls the internal_back_asset function with handles asset backing.
+  //It will throw if authorized_minter does not have a sufficient balance to pay for the backed tokens
+  for (asset& token : quantities_to_back) {
+    internal_back_asset(authorized_minter, new_owner, asset_id, token);
+  }
 }
 
 
@@ -576,45 +583,107 @@ ACTION atomicassets::setassetdata(
 
 
 /**
-* This action is used to add a zero value asset to the backed_tokens vector of an asset
-* Because adding something to a vector increases the RAM required, this can't be done directly in the receipt
-* of the transfer action, so you first add a zero value using the backsymbol action so that the RAM required doesn't
-* change when adding the received quantity in the transfer action later
+* This action is used to add a zero value asset to the quantities vector of owner in the balances table
+* If no row exists for owner, a new one is created
+* This action needs to be called before transferring (depositing) any tokens to the AtomicAssets smart contract,
+* in order to pay for the RAM that otherwise would have to be paid by the AtomicAssets smart contract
 *
 * To pass a symbol to eosio as a string, use the following format: <precision>,<symbol_code>
 * So for example: "8,WAX"
 *
-* @required_auth ram_payer
+* @required_auth owner
 */
-ACTION atomicassets::backsymbol(
-  name ram_payer,
+ACTION atomicassets::announcedepo(
   name owner,
-  uint64_t asset_id,
   symbol symbol_to_announce
 ) {
-  require_auth(ram_payer);
+  require_auth(owner);
 
-  //More symbols / tokens can be added in the future
-  check(symbol_to_announce == WAX_SYMBOL, "This symbol is not supported");
-
-  assets_t owner_assets = get_assets(owner);
-  auto asset_itr = owner_assets.require_find(asset_id,
-  "No asset with this id exists");
-
-  vector<asset> backed_tokens = asset_itr->backed_tokens;
-
-  for (asset& token : backed_tokens) {
-    if (token.symbol == symbol_to_announce) {
-      check(false, "The asset already has a backed_token entry for this symbol");
+  config_s current_config = config.get();
+  
+  bool is_supported = false;
+  for (TOKEN supported_token : current_config.supported_tokens) {
+    if (supported_token.token_symbol == symbol_to_announce) {
+      is_supported = true;
+      break;
     }
   }
+  check(is_supported, "The specified symbol is not supported");
 
-  backed_tokens.push_back(asset(0, symbol_to_announce));
+  auto balance_itr = balances.find(owner.value);
 
-  owner_assets.modify(asset_itr, ram_payer, [&](auto& _asset) {
-    _asset.ram_payer = ram_payer;
-    _asset.backed_tokens = backed_tokens;
-  });
+  if (balance_itr == balances.end()) {
+    vector<asset> quantities = {asset(0, symbol_to_announce)};
+    balances.emplace(owner, [&](auto& _balance) {
+      _balance.owner = owner;
+      _balance.quantities = quantities;
+    });
+
+  } else {
+    vector<asset> quantities = balance_itr->quantities;
+    for (asset& token : quantities) {
+      check(token.symbol != symbol_to_announce,
+      "The specified symbol has already been announced");
+    }
+    quantities.push_back(asset(0, symbol_to_announce));
+
+    balances.modify(balance_itr, owner, [&](auto& _balance) {
+      _balance.quantities = quantities;
+    });
+  }
+}
+
+
+/**
+* Withdraws fungible tokens that were previously deposited
+*
+* @required_auth owner
+*/
+ACTION atomicassets::withdraw(
+  name owner,
+  asset quantity_to_withdraw
+) {
+  require_auth(owner);
+
+  //The internal_decrease_balance function will throw if owner does not have a sufficient balance
+  internal_decrease_balance(owner, quantity_to_withdraw);
+
+  config_s current_config = config.get();
+
+  for (TOKEN supported_token : current_config.supported_tokens) {
+    if (supported_token.token_symbol == quantity_to_withdraw.symbol) {
+      action(
+        permission_level{get_self(), name("active")},
+        supported_token.token_contract,
+        name("transfer"),
+        make_tuple(
+          get_self(),
+          owner,
+          quantity_to_withdraw,
+          string("Withdrawal")
+        )
+      ).send();
+      break;
+    }
+  }
+}
+
+
+/**
+* Backs an asset with a fungible token that was previously deposited by payer
+* payer also pays for the full RAM of the asset that is backed
+* 
+* @required_auth payer
+*/
+ACTION atomicassets::backasset(
+  name payer,
+  name asset_owner,
+  uint64_t asset_id,
+  asset back_quantity
+) {
+  require_auth(payer);
+
+  internal_back_asset(payer, asset_owner, asset_id, back_quantity);
 }
 
 
@@ -642,9 +711,6 @@ ACTION atomicassets::burnasset(
   config_s current_config = config.get();
 
   for (asset backed_quantity : asset_itr->backed_tokens) {
-    if (backed_quantity.amount == 0) {
-      continue;
-    }
     for (TOKEN supported_token : current_config.supported_tokens) {
       if (supported_token.token_symbol == backed_quantity.symbol) {
         action(
@@ -827,8 +893,7 @@ ACTION atomicassets::declineoffer(
 
 /**
 *  This function is called when a transfer receipt from any token contract is sent to the atomicassets contract
-*  It handles potential back_asset transfers, which back an asset with tokens which can only be
-   released by burning the token, thus giving the token a guranteed value
+*  It handels deposits and adds the transferred tokens to the sender's balance table row
 */
 void atomicassets::receive_token_transfer(name from, name to, asset quantity, string memo) {
   if (to != _self) {
@@ -845,47 +910,25 @@ void atomicassets::receive_token_transfer(name from, name to, asset quantity, st
   }
   check(is_supported, "The transferred token is not supported");
 
-  if (memo.find("back_asset ") == 0) {
-    //Format: "back_asset <account name> <assetid>"
-    string working_str = memo.substr(11);
-    string account_str = working_str.substr(0, working_str.find(' '));
-    string id_str = working_str.substr(working_str.find(' ') + 1);
+  if (memo == "deposit") {
+    auto balance_itr = balances.require_find(from.value,
+    "You need to first initialize the balance table row using the announcedepo action");
 
-    name account = name(account_str);
-    uint64_t asset_id = stoll(id_str);
-
-    assets_t account_assets = get_assets(account);
-    auto asset_itr = account_assets.require_find(asset_id,
-    "The account does not own an asset with this id");
-
-    if (asset_itr->preset_id >= 0) {
-      auto preset_itr = presets.find(asset_itr->preset_id);
-      check(preset_itr->burnable, "Can't back an asset that is not burnable");
-    }
-
-    vector<asset> backed_tokens = asset_itr->backed_tokens;
-
+    //Quantities refers to the quantities value in the balances table row, quantity is the asset that was transferred
+    vector<asset> quantities = balance_itr->quantities;
     bool found_token = false;
-    for (asset& token : backed_tokens) {
+    for (asset& token : quantities) {
       if (token.symbol == quantity.symbol) {
         found_token = true;
         token.amount += quantity.amount;
         break;
       }
     }
-    check(found_token, "You first need to announce the asset type you're backing using the backsymbol action");
+    check(found_token, "You first need to announce the asset type you're backing using the announcedepo action");
 
-    account_assets.modify(asset_itr, same_payer, [&](auto& _asset) {
-      _asset.backed_tokens = backed_tokens;
+    balances.modify(balance_itr, same_payer, [&](auto& _balance) {
+      _balance.quantities = quantities;
     });
-
-    action(
-      permission_level{get_self(), name("active")},
-      get_self(),
-      name("logbackasset"),
-      make_tuple(account, asset_id, quantity)
-    ).send();
-
 
   } else {
     check(false, "invalid memo");
@@ -1091,6 +1134,100 @@ void atomicassets::internal_transfer(
       name("logtransfer"),
       make_tuple(collection, from, to, assets_transferred, memo, scope_payer)
     ).send();
+  }
+}
+
+
+
+/**
+*  The specified asset is backed by the specified quantitiy.
+*  This is done in an internal function because it is needed both in the mintasset and the backasset action
+*/
+void atomicassets::internal_back_asset(
+  name payer,
+  name asset_owner,
+  uint64_t asset_id,
+  asset back_quantity
+) {
+  check(back_quantity.amount > 0, "back_quantity can't be 0");
+
+  //The internal_decrease_balance function will throw if payer does not have a sufficient balance
+  internal_decrease_balance(payer, back_quantity);
+
+  assets_t owner_assets = get_assets(asset_owner);
+  auto asset_itr = owner_assets.require_find(asset_id,
+  "The specified owner does not own the asset with the specified ID");
+
+  if (asset_itr->preset_id != -1) {
+    auto preset_itr = presets.find(asset_itr->preset_id);
+    check (preset_itr->burnable, "The asset is not burnable. Only burnable assets can be backed.");
+  }
+
+  vector<asset> backed_tokens = asset_itr->backed_tokens;
+  bool found_backed_token = false;
+  for (asset& token : backed_tokens) {
+    if (token.symbol == back_quantity.symbol) {
+      found_backed_token = true;
+      token.amount += back_quantity.amount;
+      break;
+    }
+  }
+  if (!found_backed_token) {
+    backed_tokens.push_back(back_quantity);
+  }
+
+  owner_assets.modify(asset_itr, payer, [&](auto& _asset) {
+    _asset.ram_payer = payer;
+    _asset.backed_tokens = backed_tokens;
+  });
+
+  action(
+    permission_level{get_self(), name("active")},
+    get_self(),
+    name("logbackasset"),
+    make_tuple(asset_owner, asset_id, back_quantity)
+  ).send();
+}
+
+
+
+
+/**
+*  Decreases the balance of a specified account by a specified quantity
+*  If the specified account does not have at least as much tokens in the balance as should be removed
+*  the transaction will fail
+*/
+void atomicassets::internal_decrease_balance(
+  name owner,
+  asset quantity
+) {
+  auto balance_itr = balances.require_find(owner.value,
+  "The specified account does not have a balance table row");
+
+  vector<asset> quantities = balance_itr->quantities;
+  bool found_token = false;
+  for (auto itr = quantities.begin(); itr != quantities.end(); itr++) {
+    if (itr->symbol == quantity.symbol) {
+      found_token = true;
+      check (itr->amount >= quantity.amount,
+      "The specified account's balance is lower than the specified quantity");
+      itr->amount -= quantity.amount;
+      if (itr->amount == 0) {
+        quantities.erase(itr);
+      }
+      break;
+    }
+  }
+  check (found_token,
+  "The specified account does not have a balance for the symbol specified in the quantity");
+
+  //Updating the balances table
+  if (quantities.size() > 0) {
+    balances.modify(balance_itr, same_payer, [&](auto& _balance) {
+      _balance.quantities = quantities;
+    });
+  } else {
+    balances.erase(balance_itr);
   }
 }
 

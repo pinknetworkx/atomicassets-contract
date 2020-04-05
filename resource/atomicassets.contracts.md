@@ -484,6 +484,12 @@ icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CF
     {{/each}}
 {{else}}No mutable data is set for the asset.
 {{/if}}
+
+{{#if quantities_to_back}}The asset will be backed with the following tokens and {{authorized_minter}} needs to have at least that amount of tokens in their balance:
+    {{#each quantities_to_back}}
+        - {{quantities_to_back}}
+    {{/each}}
+{{/if}}
 </div>
 
 <b>Clauses:</b>
@@ -529,26 +535,76 @@ This action may only be called with the permission of {{authorized_editor}}.
 
 
 
-<h1 class="contract">backsymbol</h1>
+<h1 class="contract">announcedepo</h1>
 
 ---
 spec_version: "0.2.0"
-title: Add a symbol to be backed
-summary: '{{nowrap ram_payer}} adds the symbol {{nowrap symbol_to_announce}} to the asset with the id {{nowrap asset_id}}'
+title: Announces a deposit
+summary: '{{nowrap owner}} adds the symbol {{nowrap symbol_to_announce}} to his balance table row'
 icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CFBABF46534F48345BF6453090554C52D5
 ---
 
 <b>Description:</b>
 <div class="description">
-This action is used to add a zero value asset to the backed_tokens vector of the asset with the id {{asset_id}}.
+This action is used to add a zero value asset to the quantities vector of the balance row with the owner {{owner}}.
+If there is no balance row with the owner {{owner}}, a new one is created.
 Adding something to a vector increases the RAM required, therefore this can't be done directly in the receipt of the transfer action, so using this action a zero value is added so that the RAM required doesn't change when adding the received quantity in the transfer action later.
 
-By calling this action, {{ram_payer}} pays for the compelte RAM of the asset.
+By calling this action, {{payer}} pays for the RAM of the balance table row with the owner {{owner}}.
 </div>
 
 <b>Clauses:</b>
 <div class="clauses">
-This action may only be called with the permission of {{ram_payer}}.
+This action may only be called with the permission of {{payer}}.
+</div>
+
+
+
+
+<h1 class="contract">withdraw</h1>
+
+---
+spec_version: "0.2.0"
+title: Withdraws fungible tokens
+summary: '{{nowrap owner}} withdraws {{quantity_to_withdraw}} from his balance'
+icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CFBABF46534F48345BF6453090554C52D5
+---
+
+<b>Description:</b>
+<div class="description">
+{{owner}} withdraws {{quantity_to_withdraw}} that they previously deposited and have not yet spent otherwise.
+The tokens will be transferred back to {{owner}} and will be deducted from {{owner}}'s balance.
+</div>
+
+<b>Clauses:</b>
+<div class="clauses">
+This action may only be called with the permission of {{owner}}.
+</div>
+
+
+
+
+<h1 class="contract">backasset</h1>
+
+---
+spec_version: "0.2.0"
+title: Backs an asset with tokens
+summary: '{{nowrap payer}} backs the asset with the ID {{nowrap asset_id}} with {{nowrap back_quantity}}'
+icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CFBABF46534F48345BF6453090554C52D5
+---
+
+<b>Description:</b>
+<div class="description">
+{{payer}} backs an the asset with the ID {{asset_id}} owned by {{asset_owner}} with {{back_quantity}}.
+{{payer}} must have at least as many tokens in his balance. {{back_quantity}} will be removed from {{payer}}'s balance.
+The tokens backed to this asset can be retreived by burning the asset, in which case the owner at the time of the burn will receive the tokens.
+
+{{payer}} pays for the full RAM cost of the asset.
+</div>
+
+<b>Clauses:</b>
+<div class="clauses">
+This action may only be called with the permission of {{payer}}.
 </div>
 
 
