@@ -151,7 +151,8 @@ CONTRACT atomicassets : public contract {
       int32_t preset_id,
       name new_owner,
       ATTRIBUTE_MAP immutable_data,
-      ATTRIBUTE_MAP mutable_data
+      ATTRIBUTE_MAP mutable_data,
+      vector<asset> quantities_to_back
     );
     ACTION setassetdata(
       name authorized_editor,
@@ -159,11 +160,19 @@ CONTRACT atomicassets : public contract {
       uint64_t asset_id,
       ATTRIBUTE_MAP new_mutable_data
     );
-    ACTION backsymbol(
-      name ram_payer,
+    ACTION announcedepo(
       name owner,
-      uint64_t asset_id,
       symbol symbol_to_announce
+    );
+    ACTION withdraw(
+      name owner,
+      asset quantity_to_withdraw
+    );
+    ACTION backasset(
+      name payer,
+      name asset_owner,
+      uint64_t asset_id,
+      asset back_quantity
     );
     ACTION burnasset(
       name owner,
@@ -318,6 +327,14 @@ CONTRACT atomicassets : public contract {
     indexed_by<name("sender"), const_mem_fun<offers_s, uint64_t, &offers_s::by_sender>>,
     indexed_by<name("recipient"), const_mem_fun<offers_s, uint64_t, &offers_s::by_recipient>>> offers_t;
 
+    TABLE balances_s {
+      name                owner;
+      vector<asset>       quantities;
+
+      uint64_t primary_key() const { return owner.value; };
+    };
+    typedef multi_index<name("balances"), balances_s> balances_t;
+
 
     TABLE config_s {
       uint64_t            asset_counter = 1099511627780; //2^40
@@ -342,6 +359,7 @@ CONTRACT atomicassets : public contract {
     collections_t collections = collections_t(get_self(), get_self().value);
     presets_t presets = presets_t(get_self(), get_self().value);
     offers_t offers = offers_t(get_self(), get_self().value);
+    balances_t balances = balances_t(get_self(), get_self().value);
     config_t config = config_t(get_self(), get_self().value);
     tokenconfigs_t tokenconfigs = tokenconfigs_t(get_self(), get_self().value);
 
@@ -352,6 +370,18 @@ CONTRACT atomicassets : public contract {
       vector<uint64_t> asset_ids,
       string memo,
       name scope_payer
+    );
+
+    void internal_back_asset(
+      name ram_payer,
+      name asset_owner,
+      uint64_t asset_id,
+      asset back_quantity
+    );
+
+    void internal_decrease_balance(
+      name owner,
+      asset quantity
     );
 
     assets_t get_assets(name acc);
@@ -368,7 +398,7 @@ void apply(uint64_t receiver, uint64_t code, uint64_t action)
       (init)(admincoledit)(setversion)(addconftoken)(transfer) \
       (createcol)(setcoldata)(addcolauth)(remcolauth)(addnotifyacc)(remnotifyacc) \
       (setmarketfee)(forbidnotify)(createscheme)(extendscheme)(createpreset) \
-      (mintasset)(setassetdata)(backsymbol)(burnasset) \
+      (mintasset)(setassetdata)(announcedepo)(withdraw)(backasset)(burnasset) \
       (createoffer)(canceloffer)(acceptoffer)(declineoffer) \
       (logtransfer)(lognewpreset)(logmint)(logsetdata)(logbackasset)(logburnasset))
 		}
