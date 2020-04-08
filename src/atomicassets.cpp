@@ -81,6 +81,8 @@ ACTION atomicassets::transfer(
   string memo
 ) {
   require_auth(from);
+  require_recipient(from);
+  require_recipient(to);
   internal_transfer(from, to, asset_ids, memo, from);
 }
 
@@ -1058,9 +1060,6 @@ void atomicassets::internal_transfer(
   name scope_payer
 ) {
   check(is_account(to), "to account does not exist");
-
-  require_recipient(from);
-  require_recipient(to);
 
   check(from != to, "Can't transfer assets to yourself");
 
