@@ -766,9 +766,6 @@ ACTION atomicassets::createoffer(
 ) {
   require_auth(sender);
 
-  require_recipient(sender);
-  require_recipient(recipient);
-
   check(sender != recipient, "Can't send an offer to yourself");
 
   check(sender_asset_ids.size() != 0 || recipient_asset_ids.size() != 0,
@@ -797,8 +794,9 @@ ACTION atomicassets::createoffer(
   }
 
   config_s current_config = config.get();
+  uint64_t offer_id = current_config.offer_counter++;
   offers.emplace(sender, [&](auto& _offer) {
-    _offer.offer_id = current_config.offer_counter++;
+    _offer.offer_id = offer_id;
     _offer.offer_sender = sender;
     _offer.offer_recipient = recipient;
     _offer.sender_asset_ids = sender_asset_ids;
@@ -807,6 +805,13 @@ ACTION atomicassets::createoffer(
   });
 
   config.set(current_config, get_self());
+
+  action(
+    permission_level{get_self(), name("active")},
+    get_self(),
+    name("lognewoffer"),
+    make_tuple(offer_id, sender, recipient, sender_asset_ids, recipient_asset_ids, memo)
+  ).send();
 }
 
 
@@ -955,6 +960,21 @@ ACTION atomicassets::logtransfer(
 }
 
 
+ACTION atomicassets::lognewoffer(
+  uint64_t offer_id,
+  name sender,
+  name recipient,
+  vector<uint64_t> sender_asset_ids,
+  vector<uint64_t> recipient_asset_ids,
+  string memo
+) {
+  require_auth(get_self());
+
+  require_recipient(sender);
+  require_recipient(recipient);
+}
+
+
 ACTION atomicassets::lognewpreset(
   int32_t preset_id,
   name authorized_creator,
@@ -983,6 +1003,8 @@ ACTION atomicassets::logmint(
   name new_owner
 ) {
   require_auth(get_self());
+
+  require_recipient(new_owner);
 
   auto collection_itr = collections.find(collection_name.value);
   for (const name& notify_account : collection_itr->notify_accounts) {
@@ -1014,6 +1036,8 @@ ACTION atomicassets::logbackasset(
   asset back_quantity
 ) {
   require_auth(get_self());
+
+  require_recipient(owner);
 
   assets_t owner_assets = get_assets(owner);
   auto asset_itr = owner_assets.find(asset_id);

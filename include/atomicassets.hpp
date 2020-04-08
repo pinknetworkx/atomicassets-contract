@@ -206,6 +206,14 @@ CONTRACT atomicassets : public contract {
       vector<uint64_t> asset_ids,
       string memo
     );
+    ACTION lognewoffer(
+      uint64_t offer_id,
+      name sender,
+      name recipient,
+      vector<uint64_t> sender_asset_ids,
+      vector<uint64_t> recipient_asset_ids,
+      string memo
+    );
     ACTION lognewpreset(
       int32_t preset_id,
       name authorized_creator,
@@ -398,7 +406,7 @@ void apply(uint64_t receiver, uint64_t code, uint64_t action)
       (setmarketfee)(forbidnotify)(createscheme)(extendscheme)(createpreset) \
       (mintasset)(setassetdata)(announcedepo)(withdraw)(backasset)(burnasset) \
       (createoffer)(canceloffer)(acceptoffer)(declineoffer) \
-      (logtransfer)(lognewpreset)(logmint)(logsetdata)(logbackasset)(logburnasset))
+      (logtransfer)(lognewoffer)(lognewpreset)(logmint)(logsetdata)(logbackasset)(logburnasset))
 		}
 	} else if (action == name("transfer").value) {
     eosio::execute_action(name(receiver), name(code), &atomicassets::receive_token_transfer);
