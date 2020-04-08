@@ -18,8 +18,7 @@ ACTION logtransfer(
   name from,
   name to,
   vector<uint64_t> asset_ids,
-  string memo,
-  name scope_payer
+  string memo
 );
 
 ACTION logmint(
@@ -205,8 +204,7 @@ CONTRACT atomicassets : public contract {
       name from,
       name to,
       vector<uint64_t> asset_ids,
-      string memo,
-      name scope_payer
+      string memo
     );
     ACTION lognewpreset(
       int32_t preset_id,

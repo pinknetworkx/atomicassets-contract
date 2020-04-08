@@ -942,8 +942,7 @@ ACTION atomicassets::logtransfer(
   name from,
   name to,
   vector<uint64_t> asset_ids,
-  string memo,
-  name scope_payer
+  string memo
 ) {
   require_auth(get_self());
 
@@ -1132,7 +1131,7 @@ void atomicassets::internal_transfer(
       permission_level{get_self(), name("active")},
       get_self(),
       name("logtransfer"),
-      make_tuple(collection, from, to, assets_transferred, memo, scope_payer)
+      make_tuple(collection, from, to, assets_transferred, memo)
     ).send();
   }
 }
