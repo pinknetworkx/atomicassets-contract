@@ -431,11 +431,23 @@ namespace atomicdata {
             }
         }
 
-        if (type == "int8" || type == "int16" || type == "int32" || type == "int64") {
+        if (type == "int8") {
             return (int8_t) zigzagDecode(unsignedFromVarintBytes(itr));
+        } else if (type == "int16") {
+            return (int16_t) zigzagDecode(unsignedFromVarintBytes(itr));
+        } else if (type == "int32") {
+            return (int32_t) zigzagDecode(unsignedFromVarintBytes(itr));
+        } else if (type == "int64") {
+            return (int64_t) zigzagDecode(unsignedFromVarintBytes(itr));
 
-        } else if (type == "uint8" || type == "uint16" || type == "uint32" || type == "uint64") {
+        } else if (type == "uint8") {
             return (uint8_t) unsignedFromVarintBytes(itr);
+        } else if (type == "uint16") {
+            return (uint16_t) unsignedFromVarintBytes(itr);
+        } else if (type == "uint32") {
+            return (uint32_t) unsignedFromVarintBytes(itr);
+        } else if (type == "uint64") {
+            return (uint64_t) unsignedFromVarintBytes(itr);
 
         } else if (type == "fixed8") {
             return (uint8_t) unsignedFromIntBytes(itr, 1);
