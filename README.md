@@ -1,7 +1,7 @@
 # AtomicAssets
 AtomicAssets is a Non Fungible Token (NFT) standard for eosio blockchains developed by [pink.network](pink.network).
 
-It focuses heavily on RAM efficiency and usability and is deployed under the name **atomicassets** on the WAX Testnet and Mainnet.
+It focuses heavily on RAM efficiency and usability and is deployed under the name **atomicassets** on the WAX Testnet.
 
 ### [Documentation can be found here.](https://github.com/pinknetworkx/atomicassets-contracts/wiki)
 
