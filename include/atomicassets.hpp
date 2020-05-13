@@ -286,9 +286,9 @@ CONTRACT atomicassets : public contract {
     typedef multi_index<name("schemes"), schemes_s> schemes_t;
 
 
+    //Scope: collection_name
     TABLE presets_s {
       uint32_t            preset_id;
-      name                collection_name;
       name                scheme_name;
       bool                transferable;
       bool                burnable;
@@ -344,7 +344,8 @@ CONTRACT atomicassets : public contract {
 
     TABLE config_s {
       uint64_t            asset_counter = 1099511627780; //2^40
-      uint64_t            offer_counter = 0;
+      int32_t             preset_counter = 1;
+      uint64_t            offer_counter = 1;
       vector<FORMAT>      collection_format = {};
       vector<TOKEN>       supported_tokens = {};
     };
@@ -363,7 +364,6 @@ CONTRACT atomicassets : public contract {
 
 
     collections_t collections = collections_t(get_self(), get_self().value);
-    presets_t presets = presets_t(get_self(), get_self().value);
     offers_t offers = offers_t(get_self(), get_self().value);
     balances_t balances = balances_t(get_self(), get_self().value);
     config_t config = config_t(get_self(), get_self().value);
@@ -393,6 +393,8 @@ CONTRACT atomicassets : public contract {
     assets_t get_assets(name acc);
 
     schemes_t get_schemes(name collection_name);
+
+    presets_t get_presets(name collection_name);
 };
 
 extern "C"

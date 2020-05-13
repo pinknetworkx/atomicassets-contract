@@ -3,6 +3,7 @@
 static constexpr symbol WAX_SYMBOL = symbol("WAX", 8);
 static constexpr double MAX_MARKET_FEE = 0.15;
 
+
 /**
 *  Initializes the config table. Only needs to be called once when first deploying the contract
 *  @required_auth The contract itself
@@ -426,10 +427,14 @@ ACTION atomicassets::createpreset(
   auto scheme_itr = collection_schemes.require_find(scheme_name.value,
   "No scheme with this name exists");
 
-  uint32_t preset_id = presets.available_primary_key();
-  presets.emplace(authorized_creator, [&](auto& _preset) {
+  config_s current_config = config.get();
+  uint32_t preset_id = current_config.preset_counter++;
+  config.set(current_config, get_self());
+
+  presets_t collection_presets = get_presets(collection_name);
+
+  collection_presets.emplace(authorized_creator, [&](auto& _preset) {
     _preset.preset_id = preset_id;
-    _preset.collection_name = collection_name;
     _preset.scheme_name = scheme_name;
     _preset.transferable = transferable;
     _preset.burnable = burnable;
@@ -484,17 +489,19 @@ ACTION atomicassets::mintasset(
   "The minter is not authorized within the collection");
 
   if (preset_id >= 0) {
-    auto preset_itr = presets.require_find(preset_id,
+    presets_t collection_presets = get_presets(collection_name);
+
+    auto preset_itr = collection_presets.require_find(preset_id,
     "No preset with this id exists");
 
-    check(preset_itr->scheme_name == scheme_name && preset_itr->collection_name == collection_name,
-    "The preset belongs to another scheme / collection combination");
+    check(preset_itr->scheme_name == scheme_name,
+    "The preset belongs to another scheme");
 
     if (preset_itr->max_supply > 0) {
       check (preset_itr->issued_supply < preset_itr->max_supply,
       "The preset's maxsupply has already been reached");
     }
-    presets.modify(preset_itr, same_payer, [&](auto& _preset) {
+    collection_presets.modify(preset_itr, same_payer, [&](auto& _preset) {
       _preset.issued_supply += 1;
     });
   } else {
@@ -706,7 +713,9 @@ ACTION atomicassets::burnasset(
   "No asset with this id exists");
 
   if (asset_itr->preset_id >= 0) {
-    auto preset_itr = presets.find(asset_itr->preset_id);
+    presets_t collection_presets = get_presets(asset_itr->collection_name);
+
+    auto preset_itr = collection_presets.find(asset_itr->preset_id);
     check (preset_itr->burnable, "The asset is not burnable");
   };
 
@@ -778,7 +787,9 @@ ACTION atomicassets::createoffer(
     auto asset_itr = sender_assets.require_find(asset_id,
     ("Offer sender doesn't own at least one of the provided assets (ID: " + to_string(asset_id) + ")").c_str());
     if (asset_itr->preset_id >= 0) {
-      auto preset_itr = presets.find(asset_itr->preset_id);
+      presets_t collection_presets = get_presets(asset_itr->collection_name);
+
+      auto preset_itr = collection_presets.find(asset_itr->preset_id);
       check(preset_itr->transferable,
       ("At least one asset isn't transferable (ID: " + to_string(asset_id) + ")").c_str());
     }
@@ -787,7 +798,9 @@ ACTION atomicassets::createoffer(
     auto asset_itr = recipient_assets.require_find(asset_id,
     ("Offer recipient doesn't own at least one of the provided assets (ID: " + to_string(asset_id) + ")").c_str());
     if (asset_itr->preset_id >= 0) {
-      auto preset_itr = presets.find(asset_itr->preset_id);
+      presets_t collection_presets = get_presets(asset_itr->collection_name);
+
+      auto preset_itr = collection_presets.find(asset_itr->preset_id);
       check(preset_itr->transferable,
       ("At least one asset isn't transferable (ID: " + to_string(asset_id) + ")").c_str());
     }
@@ -1100,7 +1113,9 @@ void atomicassets::internal_transfer(
 
     //Existence doesn't have to be checked because this always has to exist
     if (asset_itr->preset_id >= 0) {
-      auto preset_itr = presets.find(asset_itr->preset_id);
+      presets_t collection_presets = get_presets(asset_itr->collection_name);
+
+      auto preset_itr = collection_presets.find(asset_itr->preset_id);
       check(preset_itr->transferable,
       ("At least one asset isn't transferable (ID: " + to_string(asset_id) + ")").c_str());
     }
@@ -1181,7 +1196,9 @@ void atomicassets::internal_back_asset(
   "The specified owner does not own the asset with the specified ID");
 
   if (asset_itr->preset_id != -1) {
-    auto preset_itr = presets.find(asset_itr->preset_id);
+    presets_t collection_presets = get_presets(asset_itr->collection_name);
+
+    auto preset_itr = collection_presets.find(asset_itr->preset_id);
     check (preset_itr->burnable, "The asset is not burnable. Only burnable assets can be backed.");
   }
 
@@ -1264,4 +1281,9 @@ atomicassets::assets_t atomicassets::get_assets(name acc) {
 
 atomicassets::schemes_t atomicassets::get_schemes(name collection_name) {
   return schemes_t(get_self(), collection_name.value);
+}
+
+
+atomicassets::presets_t atomicassets::get_presets(name collection_name) {
+  return presets_t(get_self(), collection_name.value);
 }
