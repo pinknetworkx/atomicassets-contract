@@ -194,6 +194,10 @@ CONTRACT atomicassets : public contract {
     ACTION declineoffer(
       uint64_t offer_id
     );
+    ACTION payofferram(
+      name payer,
+      uint64_t offer_id
+    );
 
     void receive_token_transfer(name from, name to, asset quantity, string memo);
     
@@ -407,7 +411,7 @@ void apply(uint64_t receiver, uint64_t code, uint64_t action)
       (createcol)(setcoldata)(addcolauth)(remcolauth)(addnotifyacc)(remnotifyacc) \
       (setmarketfee)(forbidnotify)(createscheme)(extendscheme)(createpreset) \
       (mintasset)(setassetdata)(announcedepo)(withdraw)(backasset)(burnasset) \
-      (createoffer)(canceloffer)(acceptoffer)(declineoffer) \
+      (createoffer)(canceloffer)(acceptoffer)(declineoffer)(payofferram) \
       (logtransfer)(lognewoffer)(lognewpreset)(logmint)(logsetdata)(logbackasset)(logburnasset))
 		}
 	} else if (action == name("transfer").value) {

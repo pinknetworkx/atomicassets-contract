@@ -897,6 +897,11 @@ ACTION atomicassets::acceptoffer(
 }
 
 
+/**
+*  Declines an offer
+*  The offer is then erased from the tables
+*  @require_auth The offer's recipient
+*/
 ACTION atomicassets::declineoffer(
   uint64_t offer_id
 ) {
@@ -906,6 +911,27 @@ ACTION atomicassets::declineoffer(
   require_auth(offer_itr->offer_recipient);
 
   offers.erase(offer_itr);
+}
+
+
+/**
+* Pays for the RAM of an existing offer (thus freeing the RAM of the previous payer)
+* The main purpose for this is to allow dapps to pay for the RAM of offer that their users create
+* in order to make sure that the users don't run out of RAM
+* @require_auth payer
+*/
+ACTION atomicassets::payofferram(
+  name payer,
+  uint64_t offer_id
+) {
+  require_auth(payer);
+
+  auto offer_itr = offers.require_find(offer_id,
+  "No offer with this id exists");
+
+  offers.modify(offer_itr, payer, [&](auto& _offer) {
+
+  });
 }
 
 
