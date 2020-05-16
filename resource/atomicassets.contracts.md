@@ -743,3 +743,24 @@ The recipient of the offer with the id {{offer_id}} declines the offer. The offe
 <div class="clauses">
 This action may only be called with the permission of the recipient of the offer.
 </div>
+
+
+
+<h1 class="contract">payofferram</h1>
+
+---
+spec_version: "0.2.0"
+title: Pays RAM for existing offer
+summary: '{{nowrap payer}} will pay for the RAM cost of the offer {{nowrap offer_id}}'
+icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CFBABF46534F48345BF6453090554C52D5
+---
+
+<b>Description:</b>
+<div class="description">
+{{payer}} pays for the RAM cost of the offer {{offer_id}}. The offer itself is not modified
+</div>
+
+<b>Clauses:</b>
+<div class="clauses">
+This action may only be called with the permission of {{payer}}.
+</div>
