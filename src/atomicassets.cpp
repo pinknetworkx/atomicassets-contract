@@ -477,10 +477,10 @@ ACTION atomicassets::mintasset(
   name collection_name,
   name scheme_name,
   int32_t preset_id,
-  name new_owner,
+  name new_asset_owner,
   ATTRIBUTE_MAP immutable_data,
   ATTRIBUTE_MAP mutable_data,
-  vector<asset> quantities_to_back
+  vector<asset> tokens_to_back
 ) {
   require_auth(authorized_minter);
 
@@ -516,7 +516,7 @@ ACTION atomicassets::mintasset(
   auto scheme_itr = collection_schemes.require_find(scheme_name.value,
   "No scheme with this name exists");
 
-  check(is_account(new_owner), "The new_owner account does not exist");
+  check(is_account(new_asset_owner), "The new_asset_owner account does not exist");
 
   check_name_length(immutable_data);
   check_name_length(mutable_data);
@@ -525,7 +525,7 @@ ACTION atomicassets::mintasset(
   uint64_t asset_id = current_config.asset_counter++;
   config.set(current_config, get_self());
 
-  assets_t new_owner_assets = get_assets(new_owner);
+  assets_t new_owner_assets = get_assets(new_asset_owner);
   new_owner_assets.emplace(authorized_minter, [&](auto& _asset) {
     _asset.asset_id = asset_id;
     _asset.collection_name = collection_name;
@@ -542,13 +542,23 @@ ACTION atomicassets::mintasset(
     permission_level{get_self(), name("active")},
     get_self(),
     name("logmint"),
-    make_tuple(authorized_minter, asset_id, collection_name, scheme_name, preset_id, new_owner)
+    make_tuple(
+      asset_id,
+      authorized_minter,
+      collection_name,
+      scheme_name,
+      preset_id,
+      new_asset_owner,
+      immutable_data,
+      mutable_data,
+      tokens_to_back
+    )
   ).send();
 
   //Calls the internal_back_asset function with handles asset backing.
   //It will throw if authorized_minter does not have a sufficient balance to pay for the backed tokens
-  for (asset& token : quantities_to_back) {
-    internal_back_asset(authorized_minter, new_owner, asset_id, token);
+  for (asset& token : tokens_to_back) {
+    internal_back_asset(authorized_minter, new_asset_owner, asset_id, token);
   }
 }
 
@@ -560,13 +570,13 @@ ACTION atomicassets::mintasset(
 */
 ACTION atomicassets::setassetdata(
   name authorized_editor,
-  name owner,
+  name asset_owner,
   uint64_t asset_id,
   ATTRIBUTE_MAP new_mutable_data
 ) {
   require_auth(authorized_editor);
 
-  assets_t owner_assets = get_assets(owner);
+  assets_t owner_assets = get_assets(asset_owner);
 
   auto asset_itr = owner_assets.require_find(asset_id,
   "No asset with this id exists");
@@ -581,16 +591,22 @@ ACTION atomicassets::setassetdata(
 
   check_name_length(new_mutable_data);
 
+  schemes_t collection_schemes = get_schemes(asset_itr->collection_name);
+  auto scheme_itr = collection_schemes.find(asset_itr->scheme_name.value);
+
+  ATTRIBUTE_MAP deserialized_old_data = deserialize(
+    asset_itr->mutable_serialized_data,
+    scheme_itr->format
+  );
+
   action(
     permission_level{get_self(), name("active")},
     get_self(),
     name("logsetdata"),
-    make_tuple(owner, asset_id, asset_itr->mutable_serialized_data, new_mutable_data)
+    make_tuple(asset_owner, asset_id, deserialized_old_data, new_mutable_data)
   ).send();
 
 
-  schemes_t collection_schemes = get_schemes(asset_itr->collection_name);
-  auto scheme_itr = collection_schemes.find(asset_itr->scheme_name.value);
 
   owner_assets.modify(asset_itr, authorized_editor, [&](auto& _asset) {
     _asset.ram_payer = authorized_editor;
@@ -658,17 +674,17 @@ ACTION atomicassets::announcedepo(
 */
 ACTION atomicassets::withdraw(
   name owner,
-  asset quantity_to_withdraw
+  asset token_to_withdraw
 ) {
   require_auth(owner);
 
   //The internal_decrease_balance function will throw if owner does not have a sufficient balance
-  internal_decrease_balance(owner, quantity_to_withdraw);
+  internal_decrease_balance(owner, token_to_withdraw);
 
   config_s current_config = config.get();
 
   for (TOKEN supported_token : current_config.supported_tokens) {
-    if (supported_token.token_symbol == quantity_to_withdraw.symbol) {
+    if (supported_token.token_symbol == token_to_withdraw.symbol) {
       action(
         permission_level{get_self(), name("active")},
         supported_token.token_contract,
@@ -676,7 +692,7 @@ ACTION atomicassets::withdraw(
         make_tuple(
           get_self(),
           owner,
-          quantity_to_withdraw,
+          token_to_withdraw,
           string("Withdrawal")
         )
       ).send();
@@ -696,11 +712,11 @@ ACTION atomicassets::backasset(
   name payer,
   name asset_owner,
   uint64_t asset_id,
-  asset back_quantity
+  asset token_to_back
 ) {
   require_auth(payer);
 
-  internal_back_asset(payer, asset_owner, asset_id, back_quantity);
+  internal_back_asset(payer, asset_owner, asset_id, token_to_back);
 }
 
 
@@ -708,15 +724,15 @@ ACTION atomicassets::backasset(
 *  Burns (deletes) an asset
 *  Only works if the "burnable" bool in the related preset is true
 *  If the asset has been backed with tokens previously, they are sent to the owner of the asset
-*  @required_auth The asset's owner
+*  @required_auth asset_owner
 */
 ACTION atomicassets::burnasset(
-  name owner,
+  name asset_owner,
   uint64_t asset_id
 ) {
-  require_auth(owner);
+  require_auth(asset_owner);
 
-  assets_t owner_assets = get_assets(owner);
+  assets_t owner_assets = get_assets(asset_owner);
   auto asset_itr = owner_assets.require_find(asset_id,
   "No asset with this id exists");
 
@@ -738,7 +754,7 @@ ACTION atomicassets::burnasset(
           name("transfer"),
           make_tuple(
             get_self(),
-            owner,
+            asset_owner,
             backed_quantity,
             string("Backed asset payout - ID: ") + to_string(asset_id)
           )
@@ -749,19 +765,32 @@ ACTION atomicassets::burnasset(
     }
   }
 
+  schemes_t collection_schemes = get_schemes(asset_itr->collection_name);
+  auto scheme_itr = collection_schemes.find(asset_itr->scheme_name.value);
+
+  ATTRIBUTE_MAP deserialized_immutable_data = deserialize(
+    asset_itr->immutable_serialized_data,
+    scheme_itr->format
+  );
+  ATTRIBUTE_MAP deserialized_mutable_data = deserialize(
+    asset_itr->mutable_serialized_data,
+    scheme_itr->format
+  );
+
   action(
     permission_level{get_self(), name("active")},
     get_self(),
     name("logburnasset"),
     make_tuple(
-      owner,
+      asset_owner,
       asset_id,
       asset_itr->collection_name,
       asset_itr->scheme_name,
       asset_itr->preset_id,
       asset_itr->backed_tokens,
-      asset_itr->immutable_serialized_data,
-      asset_itr->mutable_serialized_data
+      deserialized_immutable_data,
+      deserialized_mutable_data,
+      asset_itr->ram_payer
     )
   ).send();
 
@@ -820,8 +849,8 @@ ACTION atomicassets::createoffer(
   uint64_t offer_id = current_config.offer_counter++;
   offers.emplace(sender, [&](auto& _offer) {
     _offer.offer_id = offer_id;
-    _offer.offer_sender = sender;
-    _offer.offer_recipient = recipient;
+    _offer.sender = sender;
+    _offer.recipient = recipient;
     _offer.sender_asset_ids = sender_asset_ids;
     _offer.recipient_asset_ids = recipient_asset_ids;
     _offer.memo = memo;
@@ -848,7 +877,7 @@ ACTION atomicassets::canceloffer(
   auto offer_itr = offers.require_find(offer_id,
   "No offer with this id exists");
 
-  require_auth(offer_itr->offer_sender);
+  require_auth(offer_itr->sender);
 
   offers.erase(offer_itr);
 }
@@ -866,13 +895,13 @@ ACTION atomicassets::acceptoffer(
   auto offer_itr = offers.require_find(offer_id,
   "No offer with this id exists");
 
-  require_auth(offer_itr->offer_recipient);
+  require_auth(offer_itr->recipient);
 
-  require_recipient(offer_itr->offer_sender);
-  require_recipient(offer_itr->offer_recipient);
+  require_recipient(offer_itr->sender);
+  require_recipient(offer_itr->recipient);
 
-  assets_t sender_assets = get_assets(offer_itr->offer_sender);
-  assets_t recipient_assets = get_assets(offer_itr->offer_recipient);
+  assets_t sender_assets = get_assets(offer_itr->sender);
+  assets_t recipient_assets = get_assets(offer_itr->recipient);
   for (uint64_t asset_id : offer_itr->sender_asset_ids) {
     sender_assets.require_find(asset_id,
     ("Offer sender doesn't own at least one of the provided assets (ID: " + to_string(asset_id) + ")").c_str());
@@ -885,21 +914,21 @@ ACTION atomicassets::acceptoffer(
   if (offer_itr->recipient_asset_ids.size() != 0) {
     //Potential scope costs for offer sender are offset by removing the entry from the offer table
     internal_transfer(
-      offer_itr->offer_recipient,
-      offer_itr->offer_sender,
+      offer_itr->recipient,
+      offer_itr->sender,
       offer_itr->recipient_asset_ids,
       string("Accepted Offer ID: " + to_string(offer_id)),
-      offer_itr->offer_sender
+      offer_itr->sender
     );
   }
 
   if (offer_itr->sender_asset_ids.size() != 0) {
     internal_transfer(
-      offer_itr->offer_sender,
-      offer_itr->offer_recipient,
+      offer_itr->sender,
+      offer_itr->recipient,
       offer_itr->sender_asset_ids,
       string("Accepted Offer ID: " + to_string(offer_id)),
-      offer_itr->offer_recipient
+      offer_itr->recipient
     );
   }
 
@@ -918,7 +947,7 @@ ACTION atomicassets::declineoffer(
   auto offer_itr = offers.require_find(offer_id,
   "No offer with this id exists");
 
-  require_auth(offer_itr->offer_recipient);
+  require_auth(offer_itr->recipient);
 
   offers.erase(offer_itr);
 }
@@ -1044,16 +1073,19 @@ ACTION atomicassets::lognewpreset(
 
 
 ACTION atomicassets::logmint(
-  name minter,
   uint64_t asset_id,
+  name authorized_minter,
   name collection_name,
   name scheme_name,
   int32_t preset_id,
-  name new_owner
+  name new_asset_owner,
+  ATTRIBUTE_MAP immutable_data,
+  ATTRIBUTE_MAP mutable_data,
+  vector<asset> backed_tokens
 ) {
   require_auth(get_self());
 
-  require_recipient(new_owner);
+  require_recipient(new_asset_owner);
 
   auto collection_itr = collections.find(collection_name.value);
   for (const name& notify_account : collection_itr->notify_accounts) {
@@ -1063,14 +1095,14 @@ ACTION atomicassets::logmint(
 
 
 ACTION atomicassets::logsetdata(
-  name owner,
+  name asset_owner,
   uint64_t asset_id,
-  vector<uint8_t> old_serialized_data,
+  ATTRIBUTE_MAP old_data,
   ATTRIBUTE_MAP new_data
 ) {
   require_auth(get_self());
 
-  assets_t owner_assets = get_assets(owner);
+  assets_t owner_assets = get_assets(asset_owner);
   auto asset_itr = owner_assets.find(asset_id);
   auto collection_itr = collections.find(asset_itr->collection_name.value);
   for (const name& notify_account : collection_itr->notify_accounts) {
@@ -1080,15 +1112,15 @@ ACTION atomicassets::logsetdata(
 
 
 ACTION atomicassets::logbackasset(
-  name owner,
+  name asset_owner,
   uint64_t asset_id,
-  asset back_quantity
+  asset backed_token
 ) {
   require_auth(get_self());
 
-  require_recipient(owner);
+  require_recipient(asset_owner);
 
-  assets_t owner_assets = get_assets(owner);
+  assets_t owner_assets = get_assets(asset_owner);
   auto asset_itr = owner_assets.find(asset_id);
   auto collection_itr = collections.find(asset_itr->collection_name.value);
   for (const name& notify_account : collection_itr->notify_accounts) {
@@ -1098,14 +1130,15 @@ ACTION atomicassets::logbackasset(
 
 
 ACTION atomicassets::logburnasset(
-  name owner,
+  name asset_owner,
   uint64_t asset_id,
   name collection_name,
   name scheme_name,
   int32_t preset_id,
   vector<asset> backed_tokens,
-  vector<uint8_t> immutable_serialized_data,
-  vector<uint8_t> mutable_serialized_data
+  ATTRIBUTE_MAP old_immutable_data,
+  ATTRIBUTE_MAP old_mutable_data,
+  name asset_ram_payer
 ) {
   require_auth(get_self());
 
@@ -1222,12 +1255,12 @@ void atomicassets::internal_back_asset(
   name payer,
   name asset_owner,
   uint64_t asset_id,
-  asset back_quantity
+  asset token_to_back
 ) {
-  check(back_quantity.amount > 0, "back_quantity can't be 0");
+  check(token_to_back.amount > 0, "token_to_back can't be 0");
 
   //The internal_decrease_balance function will throw if payer does not have a sufficient balance
-  internal_decrease_balance(payer, back_quantity);
+  internal_decrease_balance(payer, token_to_back);
 
   assets_t owner_assets = get_assets(asset_owner);
   auto asset_itr = owner_assets.require_find(asset_id,
@@ -1243,14 +1276,14 @@ void atomicassets::internal_back_asset(
   vector<asset> backed_tokens = asset_itr->backed_tokens;
   bool found_backed_token = false;
   for (asset& token : backed_tokens) {
-    if (token.symbol == back_quantity.symbol) {
+    if (token.symbol == token_to_back.symbol) {
       found_backed_token = true;
-      token.amount += back_quantity.amount;
+      token.amount += token_to_back.amount;
       break;
     }
   }
   if (!found_backed_token) {
-    backed_tokens.push_back(back_quantity);
+    backed_tokens.push_back(token_to_back);
   }
 
   owner_assets.modify(asset_itr, payer, [&](auto& _asset) {
@@ -1262,7 +1295,7 @@ void atomicassets::internal_back_asset(
     permission_level{get_self(), name("active")},
     get_self(),
     name("logbackasset"),
-    make_tuple(asset_owner, asset_id, back_quantity)
+    make_tuple(asset_owner, asset_id, token_to_back)
   ).send();
 }
 

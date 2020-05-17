@@ -463,13 +463,13 @@ This action may only be called with the permission of {{authorized_creator}}.
 ---
 spec_version: "0.2.0"
 title: Mint an asset
-summary: '{{nowrap authorized_minter}} mints an asset which will be owned by {{nowrap new_owner}}'
+summary: '{{nowrap authorized_minter}} mints an asset which will be owned by {{nowrap new_asset_owner}}'
 icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CFBABF46534F48345BF6453090554C52D5
 ---
 
 <b>Description:</b>
 <div class="description">
-{{authorized_minter}} mints an asset of the preset which belongs to the {{scheme_name}} scheme of the {{collection_name}} collection. The asset will be owned by {{new_owner}}.
+{{authorized_minter}} mints an asset of the preset which belongs to the {{scheme_name}} scheme of the {{collection_name}} collection. The asset will be owned by {{new_asset_owner}}.
 
 {{#if immutable_data}}The immutable data of the asset is set to:
     {{#each immutable_data}}
@@ -511,17 +511,17 @@ Minting assets with the purpose of spamming or otherwise negatively impacing {{n
 ---
 spec_version: "0.2.0"
 title: Set the mutable data of an asset
-summary: '{{nowrap authorized_editor}} sets the mutable data of the asset with the id {{nowrap asset_id}} owned by {{nowrap owner}}'
+summary: '{{nowrap authorized_editor}} sets the mutable data of the asset with the id {{nowrap asset_id}} owned by {{nowrap asset_owner}}'
 icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CFBABF46534F48345BF6453090554C52D5
 ---
 
 <b>Description:</b>
 <div class="description">
-{{#if new_mutable_data}}{{authorized_editor}} sets the mutable data of the asset with the id {{asset_id}} owned by {{nowrap owner}} to the following:
+{{#if new_mutable_data}}{{authorized_editor}} sets the mutable data of the asset with the id {{asset_id}} owned by {{nowrap asset_owner}} to the following:
     {{#each new_mutable_data}}
         - name: {{this.key}} , value: {{this.value}}
     {{/each}}
-{{else}}{{authorized_editor}} clears the mutable data of the asset with the id {{asset_id}} owned by {{owner}}.
+{{else}}{{authorized_editor}} clears the mutable data of the asset with the id {{asset_id}} owned by {{asset_owner}}.
 {{/if}}
 </div>
 
@@ -566,13 +566,13 @@ This action may only be called with the permission of {{payer}}.
 ---
 spec_version: "0.2.0"
 title: Withdraws fungible tokens
-summary: '{{nowrap owner}} withdraws {{quantity_to_withdraw}} from his balance'
+summary: '{{nowrap owner}} withdraws {{token_to_withdraw}} from his balance'
 icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CFBABF46534F48345BF6453090554C52D5
 ---
 
 <b>Description:</b>
 <div class="description">
-{{owner}} withdraws {{quantity_to_withdraw}} that they previously deposited and have not yet spent otherwise.
+{{owner}} withdraws {{token_to_withdraw}} that they previously deposited and have not yet spent otherwise.
 The tokens will be transferred back to {{owner}} and will be deducted from {{owner}}'s balance.
 </div>
 
@@ -589,14 +589,14 @@ This action may only be called with the permission of {{owner}}.
 ---
 spec_version: "0.2.0"
 title: Backs an asset with tokens
-summary: '{{nowrap payer}} backs the asset with the ID {{nowrap asset_id}} with {{nowrap back_quantity}}'
+summary: '{{nowrap payer}} backs the asset with the ID {{nowrap asset_id}} with {{nowrap token_to_back}}'
 icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CFBABF46534F48345BF6453090554C52D5
 ---
 
 <b>Description:</b>
 <div class="description">
-{{payer}} backs an the asset with the ID {{asset_id}} owned by {{asset_owner}} with {{back_quantity}}.
-{{payer}} must have at least as many tokens in his balance. {{back_quantity}} will be removed from {{payer}}'s balance.
+{{payer}} backs an the asset with the ID {{asset_id}} owned by {{asset_owner}} with {{token_to_back}}.
+{{payer}} must have at least as many tokens in his balance. {{token_to_back}} will be removed from {{payer}}'s balance.
 The tokens backed to this asset can be retreived by burning the asset, in which case the owner at the time of the burn will receive the tokens.
 
 {{payer}} pays for the full RAM cost of the asset.
@@ -615,20 +615,20 @@ This action may only be called with the permission of {{payer}}.
 ---
 spec_version: "0.2.0"
 title: Burn an asset
-summary: '{{nowrap owner}} burns his asset with the id {{nowrap asset_id}}'
+summary: '{{nowrap asset_owner}} burns his asset with the id {{nowrap asset_id}}'
 icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CFBABF46534F48345BF6453090554C52D5
 ---
 
 <b>Description:</b>
 <div class="description">
-{{owner}} burns his asset with the id {{asset_id}}.
+{{asset_owner}} burns his asset with the id {{asset_id}}.
 
-If there previously were core tokens backed for this asset, these core tokens are transferred to {{owner}}.
+If there previously were core tokens backed for this asset, these core tokens are transferred to {{asset_owner}}.
 </div>
 
 <b>Clauses:</b>
 <div class="clauses">
-This action may only be called with the permission of {{owner}}.
+This action may only be called with the permission of {{asset_owner}}.
 </div>
 
 

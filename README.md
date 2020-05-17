@@ -1,7 +1,7 @@
 # AtomicAssets
 AtomicAssets is a Non Fungible Token (NFT) standard for eosio blockchains developed by [pink.network](pink.network).
 
-It focuses heavily on RAM efficiency and usability and is deployed under the name **atomicassets** on the WAX Testnet and Mainnet.
+It focuses heavily on RAM efficiency and usability and is deployed under the name **atomicassets** on the WAX Testnet.
 
 ### [Documentation can be found here.](https://github.com/pinknetworkx/atomicassets-contracts/wiki)
 
@@ -22,7 +22,7 @@ It focuses heavily on RAM efficiency and usability and is deployed under the nam
 	
 - **Minimal fixed RAM costs**
 
-	Creating an asset only costs **142 bytes** (112 of which are for the necessary index). Additionally, each token owner needs to have a scope, which costs **112 bytes**. 
+	Creating an asset only costs **151 bytes** (112 of which are for the necessary index). Additionally, each token owner needs to have a scope, which costs **112 bytes**. 
 	
 - **Notifications for Smart Contracts**
 
@@ -30,7 +30,7 @@ It focuses heavily on RAM efficiency and usability and is deployed under the nam
 	
 - **Backing assets with Core Tokens**
 
-	Assets can be backed by the respective core token of their network (e.g. EOS/ WAX). Those tokens can only be freed by burning the asset, thus allowing dapps to give their asset a guaranteed intrinsic value.
+	Assets can be backed by standard fungible tokens (e.g. EOS/ WAX). Those tokens can only be freed by burning the asset, thus allowing dapps to give their asset a guaranteed intrinsic value.
 	
 - **Powerful Trade Offers**
 
