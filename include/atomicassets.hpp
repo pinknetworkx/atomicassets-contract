@@ -54,7 +54,8 @@ ACTION logburnasset(
   int32_t preset_id,
   vector<asset> backed_tokens,
   ATTRIBUTE_MAP old_immutable_data,
-  ATTRIBUTE_MAP old_mutable_data
+  ATTRIBUTE_MAP old_mutable_data,
+  name asset_ram_payer
 );
 
 ACTION lognewpreset(
@@ -240,7 +241,7 @@ CONTRACT atomicassets : public contract {
       name new_asset_owner,
       ATTRIBUTE_MAP immutable_data,
       ATTRIBUTE_MAP mutable_data,
-      vector<asset> tokens_to_back
+      vector<asset> backed_tokens
     );
     ACTION logsetdata(
       name asset_owner,
@@ -261,7 +262,8 @@ CONTRACT atomicassets : public contract {
       int32_t preset_id,
       vector<asset> backed_tokens,
       ATTRIBUTE_MAP old_immutable_data,
-      ATTRIBUTE_MAP old_mutable_data
+      ATTRIBUTE_MAP old_mutable_data,
+      name asset_ram_payer
     );
 
 
