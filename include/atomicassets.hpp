@@ -22,36 +22,39 @@ ACTION logtransfer(
 );
 
 ACTION logmint(
-  name minter,
   uint64_t asset_id,
+  name authorized_minter,
   name collection_name,
   name scheme_name,
   int32_t preset_id,
-  name new_owner
+  name new_asset_owner,
+  ATTRIBUTE_MAP immutable_data,
+  ATTRIBUTE_MAP mutable_data,
+  vector<asset> tokens_to_back
 );
 
 ACTION logsetdata(
-  name owner,
+  name asset_owner,
   uint64_t asset_id,
-  vector<uint8_t> old_serialized_data,
+  ATTRIBUTE_MAP old_data,
   ATTRIBUTE_MAP new_data
 );
 
 ACTION logbackasset(
-  name owner,
+  name asset_owner,
   uint64_t asset_id,
-  asset back_quantity;
+  asset backed_token;
 );
 
 ACTION logburnasset(
-  name owner,
+  name asset_owner,
   uint64_t asset_id,
   name collection_name,
   name scheme_name,
   int32_t preset_id,
   vector<asset> backed_tokens,
-  vector<uint8_t> immutable_serialized_data,
-  vector<uint8_t> mutable_serialized_data
+  ATTRIBUTE_MAP old_immutable_data,
+  ATTRIBUTE_MAP old_mutable_data
 );
 
 ACTION lognewpreset(
@@ -148,14 +151,14 @@ CONTRACT atomicassets : public contract {
       name collection_name,
       name scheme_name,
       int32_t preset_id,
-      name new_owner,
+      name new_asset_owner,
       ATTRIBUTE_MAP immutable_data,
       ATTRIBUTE_MAP mutable_data,
-      vector<asset> quantities_to_back
+      vector<asset> tokens_to_back
     );
     ACTION setassetdata(
       name authorized_editor,
-      name owner,
+      name asset_owner,
       uint64_t asset_id,
       ATTRIBUTE_MAP new_mutable_data
     );
@@ -165,16 +168,16 @@ CONTRACT atomicassets : public contract {
     );
     ACTION withdraw(
       name owner,
-      asset quantity_to_withdraw
+      asset token_to_withdraw
     );
     ACTION backasset(
       name payer,
       name asset_owner,
       uint64_t asset_id,
-      asset back_quantity
+      asset token_to_back
     );
     ACTION burnasset(
-      name owner,
+      name asset_owner,
       uint64_t asset_id
     );
 
@@ -212,8 +215,8 @@ CONTRACT atomicassets : public contract {
     );
     ACTION lognewoffer(
       uint64_t offer_id,
-      name sender,
-      name recipient,
+      name offer_sender,
+      name offer_recipient,
       vector<uint64_t> sender_asset_ids,
       vector<uint64_t> recipient_asset_ids,
       string memo
@@ -229,33 +232,36 @@ CONTRACT atomicassets : public contract {
       ATTRIBUTE_MAP immutable_data
     );
     ACTION logmint(
-      name minter,
       uint64_t asset_id,
+      name authorized_minter,
       name collection_name,
       name scheme_name,
       int32_t preset_id,
-      name new_owner
+      name new_asset_owner,
+      ATTRIBUTE_MAP immutable_data,
+      ATTRIBUTE_MAP mutable_data,
+      vector<asset> tokens_to_back
     );
     ACTION logsetdata(
-      name owner,
+      name asset_owner,
       uint64_t asset_id,
-      vector<uint8_t> old_serialized_data,
+      ATTRIBUTE_MAP old_data,
       ATTRIBUTE_MAP new_data
     );
     ACTION logbackasset(
-      name owner,
+      name asset_owner,
       uint64_t asset_id,
-      asset back_quantity
+      asset backed_token
     );
     ACTION logburnasset(
-      name owner,
+      name asset_owner,
       uint64_t asset_id,
       name collection_name,
       name scheme_name,
       int32_t preset_id,
       vector<asset> backed_tokens,
-      vector<uint8_t> immutable_serialized_data,
-      vector<uint8_t> mutable_serialized_data
+      ATTRIBUTE_MAP old_immutable_data,
+      ATTRIBUTE_MAP old_mutable_data
     );
 
 
