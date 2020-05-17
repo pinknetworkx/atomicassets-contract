@@ -394,6 +394,8 @@ CONTRACT atomicassets : public contract {
       asset quantity
     );
 
+    void check_name_length(ATTRIBUTE_MAP data);
+
     assets_t get_assets(name acc);
 
     schemes_t get_schemes(name collection_name);
