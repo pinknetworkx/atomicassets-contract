@@ -40,6 +40,8 @@ void check_format(vector<FORMAT> lines) {
         string name = line.name;
         string type = line.type;
 
+        check(name.length() <= 64, "An attribute's name can only be 64 characters max");
+
         if (name == "name" && type == "string") {
             found_name = true;
         }

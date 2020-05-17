@@ -124,6 +124,8 @@ ACTION atomicassets::createcol(
 
   check(0 <= market_fee && market_fee <= MAX_MARKET_FEE,
   "The market_fee must be between 0 and " + to_string(MAX_MARKET_FEE));
+
+  check_name_length(data);
   
   config_s current_config = config.get();
 
@@ -152,6 +154,8 @@ ACTION atomicassets::setcoldata(
   "No collection with this name exists");
   
   require_auth(collection_itr->author);
+
+  check_name_length(data);
 
   config_s current_config = config.get();
   collections.modify(collection_itr, same_payer, [&](auto& _collection) {
@@ -514,6 +518,9 @@ ACTION atomicassets::mintasset(
 
   check(is_account(new_asset_owner), "The new_asset_owner account does not exist");
 
+  check_name_length(immutable_data);
+  check_name_length(mutable_data);
+
   config_s current_config = config.get();
   uint64_t asset_id = current_config.asset_counter++;
   config.set(current_config, get_self());
@@ -581,6 +588,8 @@ ACTION atomicassets::setassetdata(
     authorized_editor
   ) != collection_itr->authorized_accounts.end(),
   "The editor is not authorized within the collection");
+
+  check_name_length(new_mutable_data);
 
   schemes_t collection_schemes = get_schemes(asset_itr->collection_name);
   auto scheme_itr = collection_schemes.find(asset_itr->scheme_name.value);
@@ -807,6 +816,8 @@ ACTION atomicassets::createoffer(
 
   check(sender_asset_ids.size() != 0 || recipient_asset_ids.size() != 0,
   "Can't create an empty offer"); 
+
+  check(memo.length() <= 256, "An offer memo can only be 256 characters max");
 
   assets_t sender_assets = get_assets(sender);
   assets_t recipient_assets = get_assets(recipient);
@@ -1160,6 +1171,8 @@ void atomicassets::internal_transfer(
 
   check(asset_ids.size() != 0, "asset_ids needs to contain at least one id");
 
+  check(memo.length() <= 256, "A transfer memo can only be 256 characters max");
+
   assets_t from_assets = get_assets(from);
   assets_t to_assets = get_assets(to);
 
@@ -1329,6 +1342,23 @@ void atomicassets::internal_decrease_balance(
 }
 
 
+
+/**
+* The "name" attribute is limited to 64 characters max for both assets and collections
+* This function checks that, if there exists an ATTRIBUTE with name: "name", the value of it
+* must be of length <= 64
+*/
+void atomicassets::check_name_length(
+  ATTRIBUTE_MAP data
+) {
+  auto data_itr = data.find("name");
+  if (data_itr != data.end()) {
+    if (std::holds_alternative<string>(data_itr->second)) {
+      check(std::get<string>(data_itr->second).length() <= 64,
+      "Names (attribute with name: \"name\") can only be 64 characters max");
+    }
+  }
+}
 
 
 
