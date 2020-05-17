@@ -216,8 +216,8 @@ CONTRACT atomicassets : public contract {
     );
     ACTION lognewoffer(
       uint64_t offer_id,
-      name offer_sender,
-      name offer_recipient,
+      name sender,
+      name recipient,
       vector<uint64_t> sender_asset_ids,
       vector<uint64_t> recipient_asset_ids,
       string memo
@@ -331,15 +331,15 @@ CONTRACT atomicassets : public contract {
 
     TABLE offers_s {
       uint64_t            offer_id;
-      name                offer_sender;
-      name                offer_recipient;
+      name                sender;
+      name                recipient;
       vector<uint64_t>    sender_asset_ids;
       vector<uint64_t>    recipient_asset_ids;
       string              memo;
 
       uint64_t primary_key() const { return offer_id; };
-      uint64_t by_sender() const { return offer_sender.value; };
-      uint64_t by_recipient() const { return offer_recipient.value; };
+      uint64_t by_sender() const { return sender.value; };
+      uint64_t by_recipient() const { return recipient.value; };
     };
     typedef multi_index<name("offers"), offers_s,
     indexed_by<name("sender"), const_mem_fun<offers_s, uint64_t, &offers_s::by_sender>>,

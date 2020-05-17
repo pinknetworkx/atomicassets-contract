@@ -838,8 +838,8 @@ ACTION atomicassets::createoffer(
   uint64_t offer_id = current_config.offer_counter++;
   offers.emplace(sender, [&](auto& _offer) {
     _offer.offer_id = offer_id;
-    _offer.offer_sender = sender;
-    _offer.offer_recipient = recipient;
+    _offer.sender = sender;
+    _offer.recipient = recipient;
     _offer.sender_asset_ids = sender_asset_ids;
     _offer.recipient_asset_ids = recipient_asset_ids;
     _offer.memo = memo;
@@ -866,7 +866,7 @@ ACTION atomicassets::canceloffer(
   auto offer_itr = offers.require_find(offer_id,
   "No offer with this id exists");
 
-  require_auth(offer_itr->offer_sender);
+  require_auth(offer_itr->sender);
 
   offers.erase(offer_itr);
 }
@@ -884,13 +884,13 @@ ACTION atomicassets::acceptoffer(
   auto offer_itr = offers.require_find(offer_id,
   "No offer with this id exists");
 
-  require_auth(offer_itr->offer_recipient);
+  require_auth(offer_itr->recipient);
 
-  require_recipient(offer_itr->offer_sender);
-  require_recipient(offer_itr->offer_recipient);
+  require_recipient(offer_itr->sender);
+  require_recipient(offer_itr->recipient);
 
-  assets_t sender_assets = get_assets(offer_itr->offer_sender);
-  assets_t recipient_assets = get_assets(offer_itr->offer_recipient);
+  assets_t sender_assets = get_assets(offer_itr->sender);
+  assets_t recipient_assets = get_assets(offer_itr->recipient);
   for (uint64_t asset_id : offer_itr->sender_asset_ids) {
     sender_assets.require_find(asset_id,
     ("Offer sender doesn't own at least one of the provided assets (ID: " + to_string(asset_id) + ")").c_str());
@@ -903,21 +903,21 @@ ACTION atomicassets::acceptoffer(
   if (offer_itr->recipient_asset_ids.size() != 0) {
     //Potential scope costs for offer sender are offset by removing the entry from the offer table
     internal_transfer(
-      offer_itr->offer_recipient,
-      offer_itr->offer_sender,
+      offer_itr->recipient,
+      offer_itr->sender,
       offer_itr->recipient_asset_ids,
       string("Accepted Offer ID: " + to_string(offer_id)),
-      offer_itr->offer_sender
+      offer_itr->sender
     );
   }
 
   if (offer_itr->sender_asset_ids.size() != 0) {
     internal_transfer(
-      offer_itr->offer_sender,
-      offer_itr->offer_recipient,
+      offer_itr->sender,
+      offer_itr->recipient,
       offer_itr->sender_asset_ids,
       string("Accepted Offer ID: " + to_string(offer_id)),
-      offer_itr->offer_recipient
+      offer_itr->recipient
     );
   }
 
@@ -936,7 +936,7 @@ ACTION atomicassets::declineoffer(
   auto offer_itr = offers.require_find(offer_id,
   "No offer with this id exists");
 
-  require_auth(offer_itr->offer_recipient);
+  require_auth(offer_itr->recipient);
 
   offers.erase(offer_itr);
 }
@@ -1029,16 +1029,16 @@ ACTION atomicassets::logtransfer(
 
 ACTION atomicassets::lognewoffer(
   uint64_t offer_id,
-  name offer_sender,
-  name offer_recipient,
+  name sender,
+  name recipient,
   vector<uint64_t> sender_asset_ids,
   vector<uint64_t> recipient_asset_ids,
   string memo
 ) {
   require_auth(get_self());
 
-  require_recipient(offer_sender);
-  require_recipient(offer_recipient);
+  require_recipient(sender);
+  require_recipient(recipient);
 }
 
 
