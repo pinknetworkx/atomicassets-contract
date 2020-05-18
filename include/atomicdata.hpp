@@ -333,7 +333,7 @@ namespace atomicdata {
 
         } else if (type == "bool") {
             check(std::holds_alternative<uint8_t>(attr),
-                  "Expected a bool (needs to be provided as uint8_t because of C++ restrictions), but got something else");
+                "Expected a bool (needs to be provided as uint8_t because of C++ restrictions), but got something else");
             if (std::get<uint8_t>(attr)) {
                 return {1};
             } else {
@@ -527,8 +527,8 @@ namespace atomicdata {
         }
         if (attr_map.begin() != attr_map.end()) {
             check(false,
-                  "The following attribute could not be serialized, because it is not specified in the provided format: "
-                  + attr_map.begin()->first);
+                "The following attribute could not be serialized, because it is not specified in the provided format: "
+                + attr_map.begin()->first);
         }
         return serialized_data;
     }
