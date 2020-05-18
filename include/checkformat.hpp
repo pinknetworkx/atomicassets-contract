@@ -29,11 +29,11 @@ For a format to be vlaid, three things are checked:
 Note: This could all be done a lot cleaner by using regex or similar libraries
       However, using them would bloat up the contract size significantly.
 */
-void check_format(vector<FORMAT> lines) {
+void check_format(vector <FORMAT> lines) {
 
     bool found_name = false;
 
-    vector<string> attribute_names = {};
+    vector <string> attribute_names = {};
 
     for (FORMAT line : lines) {
 
