@@ -29,11 +29,11 @@ For a format to be vlaid, three things are checked:
 Note: This could all be done a lot cleaner by using regex or similar libraries
       However, using them would bloat up the contract size significantly.
 */
-void check_format(vector<FORMAT> lines) {
+void check_format(vector <FORMAT> lines) {
 
     bool found_name = false;
 
-    vector<string> attribute_names = {};
+    vector <string> attribute_names = {};
 
     for (FORMAT line : lines) {
 
@@ -85,11 +85,11 @@ void check_format(vector<FORMAT> lines) {
         check(offset == type.length(), "'type' attribute has an invalid format - " + line.type);
 
         check(std::find(attribute_names.begin(), attribute_names.end(), name) == attribute_names.end(),
-            "there already is an attribute with the same name - " + line.name);
+              "there already is an attribute with the same name - " + line.name);
 
         attribute_names.push_back(name);
     }
 
     check(found_name,
-        "A format line with {\"name\": \"name\" and \"type\": \"string\"} needs to be defined for every scheme");
+          "A format line with {\"name\": \"name\" and \"type\": \"string\"} needs to be defined for every scheme");
 }

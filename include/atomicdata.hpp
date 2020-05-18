@@ -1,4 +1,4 @@
-#ifndef ATOMICDATA_FILE_GUARD 
+#ifndef ATOMICDATA_FILE_GUARD
 #define ATOMICDATA_FILE_GUARD
 
 #include <eosio/eosio.hpp>
@@ -11,17 +11,17 @@ namespace atomicdata {
 
     //Custom vector types need to be defined because otherwise a bug in Nodeos (tested for 1.8.0)
     //would cause all get_table_row calls to return an error
-    typedef std::vector<int8_t> INT8_VEC;
-    typedef std::vector<int16_t> INT16_VEC;
-    typedef std::vector<int32_t> INT32_VEC;
-    typedef std::vector<int64_t> INT64_VEC;
-    typedef std::vector<uint8_t> UINT8_VEC;
-    typedef std::vector<uint16_t> UINT16_VEC;
-    typedef std::vector<uint32_t> UINT32_VEC;
-    typedef std::vector<uint64_t> UINT64_VEC;
+    typedef std::vector <int8_t> INT8_VEC;
+    typedef std::vector <int16_t> INT16_VEC;
+    typedef std::vector <int32_t> INT32_VEC;
+    typedef std::vector <int64_t> INT64_VEC;
+    typedef std::vector <uint8_t> UINT8_VEC;
+    typedef std::vector <uint16_t> UINT16_VEC;
+    typedef std::vector <uint32_t> UINT32_VEC;
+    typedef std::vector <uint64_t> UINT64_VEC;
     typedef std::vector<float> FLOAT_VEC;
     typedef std::vector<double> DOUBLE_VEC;
-    typedef std::vector<std::string> STRING_VEC;
+    typedef std::vector <std::string> STRING_VEC;
 
 //Here, define needs to be used instead of typedef in order to prevent the eosio abigen from creating an extra type
 //for this, because of another bug in Nodeos (https://github.com/EOSIO/eos/issues/7254)
@@ -35,7 +35,7 @@ namespace atomicdata {
 
     //But here we can use typedef again because maps are stored as structs in the abi, which are not affected by
     //the bug mentioned above
-    typedef std::map<std::string, ATOMIC_ATTRIBUTE> ATTRIBUTE_MAP;
+    typedef std::map <std::string, ATOMIC_ATTRIBUTE> ATTRIBUTE_MAP;
 
     struct FORMAT {
         std::string name;
@@ -45,16 +45,16 @@ namespace atomicdata {
     static constexpr uint64_t RESERVED = 4;
 
 
-    vector<uint8_t> toVarintBytes(uint64_t number, uint64_t original_bytes = 8) {
+    vector <uint8_t> toVarintBytes(uint64_t number, uint64_t original_bytes = 8) {
         if (original_bytes < 8) {
             uint64_t bitmask = ((uint64_t) 1 << original_bytes * 8) - 1;
             number &= bitmask;
         }
 
-        vector<uint8_t> bytes = {};
+        vector <uint8_t> bytes = {};
         while (true) {
             if (number >= 128) {
-                bytes.push_back((uint8_t) (128 + number % 128));
+                bytes.push_back((uint8_t)(128 + number % 128));
                 number /= 128;
             } else {
                 bytes.push_back((uint8_t) number);
@@ -70,10 +70,10 @@ namespace atomicdata {
         uint64_t multiplier = 1;
         while (true) {
             if (*itr >= 128) {
-                number += (((uint64_t) *itr) - 128) * multiplier;
+                number += (((uint64_t) * itr) - 128) * multiplier;
                 itr++;
             } else {
-                number += ((uint64_t) *itr) * multiplier;
+                number += ((uint64_t) * itr) * multiplier;
                 itr++;
                 break;
             }
@@ -96,8 +96,8 @@ namespace atomicdata {
 
 
 //It is expected that the number is smaller than 2^byte_amount
-    vector<uint8_t> toIntBytes(uint64_t number, uint64_t byte_amount) {
-        vector<uint8_t> bytes = {};
+    vector <uint8_t> toIntBytes(uint64_t number, uint64_t byte_amount) {
+        vector <uint8_t> bytes = {};
         for (uint64_t i = 0; i < byte_amount; i++) {
             bytes.push_back((uint8_t) number % 256);
             number /= 256;
@@ -109,7 +109,7 @@ namespace atomicdata {
         uint64_t number = 0;
         uint64_t multiplier = 1;
         for (uint64_t i = 0; i < original_bytes; i++) {
-            number += ((uint64_t) *itr) * multiplier;
+            number += ((uint64_t) * itr) * multiplier;
             multiplier *= 256;
             itr++;
         }
@@ -120,7 +120,7 @@ namespace atomicdata {
 
     uint64_t zigzagEncode(int64_t value) {
         if (value <= 0) {
-            return (uint64_t) (-1 * (value + 1)) * 2 + 1;
+            return (uint64_t)(-1 * (value + 1)) * 2 + 1;
         } else {
             return (uint64_t) value * 2;
         }
@@ -128,124 +128,124 @@ namespace atomicdata {
 
     int64_t zigzagDecode(uint64_t value) {
         if (value % 2 == 0) {
-            return (int64_t) (value / 2);
+            return (int64_t)(value / 2);
         } else {
-            return (int64_t) (value / 2) * -1 - 1;
+            return (int64_t)(value / 2) * -1 - 1;
         }
     }
 
 
-    vector<uint8_t> serialize_attribute(const string &type, const ATOMIC_ATTRIBUTE &attr) {
+    vector <uint8_t> serialize_attribute(const string &type, const ATOMIC_ATTRIBUTE &attr) {
         if (type.find("[]", type.length() - 2) == type.length() - 2) {
             //Type is an array
             string base_type = type.substr(0, type.length() - 2);
 
             if (std::holds_alternative<INT8_VEC>(attr)) {
                 INT8_VEC vec = std::get<INT8_VEC>(attr);
-                vector<uint8_t> serialized_data = toVarintBytes(vec.size());
+                vector <uint8_t> serialized_data = toVarintBytes(vec.size());
                 for (auto child : vec) {
                     ATOMIC_ATTRIBUTE child_attr = child;
-                    vector<uint8_t> serialized_element = serialize_attribute(base_type, child_attr);
+                    vector <uint8_t> serialized_element = serialize_attribute(base_type, child_attr);
                     serialized_data.insert(serialized_data.end(), serialized_element.begin(), serialized_element.end());
                 }
                 return serialized_data;
 
             } else if (std::holds_alternative<INT16_VEC>(attr)) {
                 INT16_VEC vec = std::get<INT16_VEC>(attr);
-                vector<uint8_t> serialized_data = toVarintBytes(vec.size());
+                vector <uint8_t> serialized_data = toVarintBytes(vec.size());
                 for (auto child : vec) {
                     ATOMIC_ATTRIBUTE child_attr = child;
-                    vector<uint8_t> serialized_element = serialize_attribute(base_type, child_attr);
+                    vector <uint8_t> serialized_element = serialize_attribute(base_type, child_attr);
                     serialized_data.insert(serialized_data.end(), serialized_element.begin(), serialized_element.end());
                 }
                 return serialized_data;
 
             } else if (std::holds_alternative<INT32_VEC>(attr)) {
                 INT32_VEC vec = std::get<INT32_VEC>(attr);
-                vector<uint8_t> serialized_data = toVarintBytes(vec.size());
+                vector <uint8_t> serialized_data = toVarintBytes(vec.size());
                 for (auto child : vec) {
                     ATOMIC_ATTRIBUTE child_attr = child;
-                    vector<uint8_t> serialized_element = serialize_attribute(base_type, child_attr);
+                    vector <uint8_t> serialized_element = serialize_attribute(base_type, child_attr);
                     serialized_data.insert(serialized_data.end(), serialized_element.begin(), serialized_element.end());
                 }
                 return serialized_data;
 
             } else if (std::holds_alternative<INT64_VEC>(attr)) {
                 INT64_VEC vec = std::get<INT64_VEC>(attr);
-                vector<uint8_t> serialized_data = toVarintBytes(vec.size());
+                vector <uint8_t> serialized_data = toVarintBytes(vec.size());
                 for (auto child : vec) {
                     ATOMIC_ATTRIBUTE child_attr = child;
-                    vector<uint8_t> serialized_element = serialize_attribute(base_type, child_attr);
+                    vector <uint8_t> serialized_element = serialize_attribute(base_type, child_attr);
                     serialized_data.insert(serialized_data.end(), serialized_element.begin(), serialized_element.end());
                 }
                 return serialized_data;
 
             } else if (std::holds_alternative<UINT8_VEC>(attr)) {
                 UINT8_VEC vec = std::get<UINT8_VEC>(attr);
-                vector<uint8_t> serialized_data = toVarintBytes(vec.size());
+                vector <uint8_t> serialized_data = toVarintBytes(vec.size());
                 for (auto child : vec) {
                     ATOMIC_ATTRIBUTE child_attr = child;
-                    vector<uint8_t> serialized_element = serialize_attribute(base_type, child_attr);
+                    vector <uint8_t> serialized_element = serialize_attribute(base_type, child_attr);
                     serialized_data.insert(serialized_data.end(), serialized_element.begin(), serialized_element.end());
                 }
                 return serialized_data;
 
             } else if (std::holds_alternative<UINT16_VEC>(attr)) {
                 UINT16_VEC vec = std::get<UINT16_VEC>(attr);
-                vector<uint8_t> serialized_data = toVarintBytes(vec.size());
+                vector <uint8_t> serialized_data = toVarintBytes(vec.size());
                 for (auto child : vec) {
                     ATOMIC_ATTRIBUTE child_attr = child;
-                    vector<uint8_t> serialized_element = serialize_attribute(base_type, child_attr);
+                    vector <uint8_t> serialized_element = serialize_attribute(base_type, child_attr);
                     serialized_data.insert(serialized_data.end(), serialized_element.begin(), serialized_element.end());
                 }
                 return serialized_data;
 
             } else if (std::holds_alternative<UINT32_VEC>(attr)) {
                 UINT32_VEC vec = std::get<UINT32_VEC>(attr);
-                vector<uint8_t> serialized_data = toVarintBytes(vec.size());
+                vector <uint8_t> serialized_data = toVarintBytes(vec.size());
                 for (auto child : vec) {
                     ATOMIC_ATTRIBUTE child_attr = child;
-                    vector<uint8_t> serialized_element = serialize_attribute(base_type, child_attr);
+                    vector <uint8_t> serialized_element = serialize_attribute(base_type, child_attr);
                     serialized_data.insert(serialized_data.end(), serialized_element.begin(), serialized_element.end());
                 }
                 return serialized_data;
 
             } else if (std::holds_alternative<UINT64_VEC>(attr)) {
                 UINT64_VEC vec = std::get<UINT64_VEC>(attr);
-                vector<uint8_t> serialized_data = toVarintBytes(vec.size());
+                vector <uint8_t> serialized_data = toVarintBytes(vec.size());
                 for (auto child : vec) {
                     ATOMIC_ATTRIBUTE child_attr = child;
-                    vector<uint8_t> serialized_element = serialize_attribute(base_type, child_attr);
+                    vector <uint8_t> serialized_element = serialize_attribute(base_type, child_attr);
                     serialized_data.insert(serialized_data.end(), serialized_element.begin(), serialized_element.end());
                 }
                 return serialized_data;
 
             } else if (std::holds_alternative<FLOAT_VEC>(attr)) {
                 FLOAT_VEC vec = std::get<FLOAT_VEC>(attr);
-                vector<uint8_t> serialized_data = toVarintBytes(vec.size());
+                vector <uint8_t> serialized_data = toVarintBytes(vec.size());
                 for (auto child : vec) {
                     ATOMIC_ATTRIBUTE child_attr = child;
-                    vector<uint8_t> serialized_element = serialize_attribute(base_type, child_attr);
+                    vector <uint8_t> serialized_element = serialize_attribute(base_type, child_attr);
                     serialized_data.insert(serialized_data.end(), serialized_element.begin(), serialized_element.end());
                 }
                 return serialized_data;
 
             } else if (std::holds_alternative<DOUBLE_VEC>(attr)) {
                 DOUBLE_VEC vec = std::get<DOUBLE_VEC>(attr);
-                vector<uint8_t> serialized_data = toVarintBytes(vec.size());
+                vector <uint8_t> serialized_data = toVarintBytes(vec.size());
                 for (auto child : vec) {
                     ATOMIC_ATTRIBUTE child_attr = child;
-                    vector<uint8_t> serialized_element = serialize_attribute(base_type, child_attr);
+                    vector <uint8_t> serialized_element = serialize_attribute(base_type, child_attr);
                     serialized_data.insert(serialized_data.end(), serialized_element.begin(), serialized_element.end());
                 }
                 return serialized_data;
 
             } else if (std::holds_alternative<STRING_VEC>(attr)) {
                 STRING_VEC vec = std::get<STRING_VEC>(attr);
-                vector<uint8_t> serialized_data = toVarintBytes(vec.size());
+                vector <uint8_t> serialized_data = toVarintBytes(vec.size());
                 for (auto child : vec) {
                     ATOMIC_ATTRIBUTE child_attr = child;
-                    vector<uint8_t> serialized_element = serialize_attribute(base_type, child_attr);
+                    vector <uint8_t> serialized_element = serialize_attribute(base_type, child_attr);
                     serialized_data.insert(serialized_data.end(), serialized_element.begin(), serialized_element.end());
                 }
                 return serialized_data;
@@ -296,7 +296,7 @@ namespace atomicdata {
             check(std::holds_alternative<float>(attr), "Expected a float, but got something else");
             float float_value = std::get<float>(attr);
             auto *byte_value = reinterpret_cast<uint8_t *>(&float_value);
-            vector<uint8_t> serialized_data = {};
+            vector <uint8_t> serialized_data = {};
             serialized_data.reserve(4);
             for (int i = 0; i < 4; i++) {
                 serialized_data.push_back(*(byte_value + i));
@@ -307,7 +307,7 @@ namespace atomicdata {
             check(std::holds_alternative<double>(attr), "Expected a double, but got something else");
             double float_value = std::get<double>(attr);
             auto *byte_value = reinterpret_cast<uint8_t *>(&float_value);
-            vector<uint8_t> serialized_data = {};
+            vector <uint8_t> serialized_data = {};
             serialized_data.reserve(8);
             for (int i = 0; i < 8; i++) {
                 serialized_data.push_back(*(byte_value + i));
@@ -317,23 +317,23 @@ namespace atomicdata {
         } else if (type == "string") {
             check(std::holds_alternative<string>(attr), "Expected a string, but got something else");
             string text = std::get<string>(attr);
-            vector<uint8_t> serialized_data(text.begin(), text.end());
+            vector <uint8_t> serialized_data(text.begin(), text.end());
 
-            vector<uint8_t> length_bytes = toVarintBytes(text.length());
+            vector <uint8_t> length_bytes = toVarintBytes(text.length());
             serialized_data.insert(serialized_data.begin(), length_bytes.begin(), length_bytes.end());
             return serialized_data;
 
         } else if (type == "ipfs") {
             check(std::holds_alternative<string>(attr), "Expected a string (ipfs), but got something else");
-            vector<uint8_t> result = {};
+            vector <uint8_t> result = {};
             DecodeBase58(std::get<string>(attr), result);
-            vector<uint8_t> length_bytes = toVarintBytes(result.size());
+            vector <uint8_t> length_bytes = toVarintBytes(result.size());
             result.insert(result.begin(), length_bytes.begin(), length_bytes.end());
             return result;
 
         } else if (type == "bool") {
             check(std::holds_alternative<uint8_t>(attr),
-                "Expected a bool (needs to be provided as uint8_t because of C++ restrictions), but got something else");
+                  "Expected a bool (needs to be provided as uint8_t because of C++ restrictions), but got something else");
             if (std::get<uint8_t>(attr)) {
                 return {1};
             } else {
@@ -485,7 +485,7 @@ namespace atomicdata {
 
         } else if (type == "ipfs") {
             uint64_t array_length = unsignedFromVarintBytes(itr);
-            vector<uint8_t> byte_array = {};
+            vector <uint8_t> byte_array = {};
             byte_array.insert(byte_array.begin(), itr, itr + array_length);
 
             itr += array_length;
@@ -509,16 +509,16 @@ namespace atomicdata {
     }
 
 
-    vector<uint8_t> serialize(ATTRIBUTE_MAP attr_map, vector<FORMAT> format_lines) {
+    vector <uint8_t> serialize(ATTRIBUTE_MAP attr_map, vector <FORMAT> format_lines) {
         uint64_t number = 0;
-        vector<uint8_t> serialized_data = {};
+        vector <uint8_t> serialized_data = {};
         for (FORMAT line : format_lines) {
             auto attribute_itr = attr_map.find(line.name);
             if (attribute_itr != attr_map.end()) {
-                vector<uint8_t> identifier = toVarintBytes(number + RESERVED);
+                vector <uint8_t> identifier = toVarintBytes(number + RESERVED);
                 serialized_data.insert(serialized_data.end(), identifier.begin(), identifier.end());
 
-                vector<uint8_t> child_data = serialize_attribute(line.type, attribute_itr->second);
+                vector <uint8_t> child_data = serialize_attribute(line.type, attribute_itr->second);
                 serialized_data.insert(serialized_data.end(), child_data.begin(), child_data.end());
 
                 attr_map.erase(attribute_itr);
@@ -527,14 +527,14 @@ namespace atomicdata {
         }
         if (attr_map.begin() != attr_map.end()) {
             check(false,
-            "The following attribute could not be serialized, because it is not specified in the provided format: "
-            + attr_map.begin()->first);
+                  "The following attribute could not be serialized, because it is not specified in the provided format: "
+                  + attr_map.begin()->first);
         }
         return serialized_data;
     }
 
 
-    ATTRIBUTE_MAP deserialize(vector<uint8_t> data, vector<FORMAT> format_lines) {
+    ATTRIBUTE_MAP deserialize(vector <uint8_t> data, vector <FORMAT> format_lines) {
         ATTRIBUTE_MAP attr_map = {};
 
         auto itr = data.begin();
