@@ -302,10 +302,10 @@ private:
     TABLE collections_s{
         name                collection_name;
         name                author;
-        bool allow_notify;
+        bool                allow_notify;
         vector<name>        authorized_accounts;
         vector<name>        notify_accounts;
-        double market_fee;
+        double              market_fee;
         vector<uint8_t>     serialized_data;
 
         uint64_t primary_key() const { return collection_name.value; };
@@ -327,8 +327,8 @@ private:
     TABLE presets_s{
         uint32_t            preset_id;
         name                scheme_name;
-        bool transferable;
-        bool burnable;
+        bool                transferable;
+        bool                burnable;
         uint32_t            max_supply;
         uint32_t            issued_supply;
         vector<uint8_t>     immutable_serialized_data;
@@ -392,8 +392,8 @@ private:
     typedef multi_index<name("config"), config_s> config_t_for_abi;
 
     TABLE tokenconfigs_s{
-        name           standard = name("atomicassets");
-        std::string    version = string("0.2.0");
+        name                standard = name("atomicassets");
+        std::string         version = string("0.2.0");
     };
     typedef singleton<name("tokenconfigs"), tokenconfigs_s> tokenconfigs_t;
     // https://github.com/EOSIO/eosio.cdt/issues/280
