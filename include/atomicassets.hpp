@@ -457,7 +457,7 @@ void apply(uint64_t receiver, uint64_t code, uint64_t action) {
             EOSIO_DISPATCH_HELPER(atomicassets, \
             (init)(admincoledit)(setversion)(addconftoken)(transfer) \
             (createcol)(setcoldata)(addcolauth)(remcolauth)(addnotifyacc)(remnotifyacc) \
-            (setmarketfee)(forbidnotify)(createschema)(extendschema)(createtempl) \
+            (setmarketfee)(forbidnotify)(createschema)(extendschema)(createtempl)(locktemplate) \
             (mintasset)(setassetdata)(announcedepo)(withdraw)(backasset)(burnasset) \
             (createoffer)(canceloffer)(acceptoffer)(declineoffer)(payofferram) \
             (logtransfer)(lognewoffer)(lognewtempl)(logmint)(logsetdata)(logbackasset)(logburnasset))
