@@ -25,8 +25,8 @@ Nofification Receipts for notify_accounts in a collection
         uint64_t asset_id,
         name authorized_minter,
         name collection_name,
-        name scheme_name,
-        int32_t preset_id,
+        name schema_name,
+        int32_t template_id,
         name new_asset_owner,
         ATTRIBUTE_MAP immutable_data,
         ATTRIBUTE_MAP mutable_data,
@@ -50,18 +50,18 @@ Nofification Receipts for notify_accounts in a collection
         name asset_owner,
         uint64_t asset_id,
         name collection_name,
-        name scheme_name,
-        int32_t preset_id,
+        name schema_name,
+        int32_t template_id,
         vector <asset> backed_tokens,
         ATTRIBUTE_MAP old_immutable_data,
         ATTRIBUTE_MAP old_mutable_data,
         name asset_ram_payer
     );
 
-    ACTION lognewpreset(
-        int32_t preset_id,
+    ACTION lognewtempl(
+        int32_t template_id,
         name authorized_creator,
-        name scheme_name,
+        name schema_name,
         name collection_name,
         bool transferable,
         bool burnable,
@@ -83,12 +83,14 @@ public:
 
     ACTION addconftoken(name token_contract, symbol token_symbol);
 
+
     ACTION transfer(
         name from,
         name to,
         vector <uint64_t> asset_ids,
         string memo
     );
+
 
     ACTION createcol(
         name author,
@@ -134,35 +136,38 @@ public:
         name collection_name
     );
 
-    ACTION createscheme(
+
+    ACTION createschema(
         name authorized_creator,
         name collection_name,
-        name scheme_name,
-        vector <FORMAT> scheme_format
+        name schema_name,
+        vector <FORMAT> schema_format
     );
 
-    ACTION extendscheme(
+    ACTION extendschema(
         name authorized_editor,
         name collection_name,
-        name scheme_name,
-        vector <FORMAT> scheme_format_extension
+        name schema_name,
+        vector <FORMAT> schema_format_extension
     );
 
-    ACTION createpreset(
+
+    ACTION createtempl(
         name authorized_creator,
         name collection_name,
-        name scheme_name,
+        name schema_name,
         bool transferable,
         bool burnable,
         uint32_t max_supply,
         ATTRIBUTE_MAP immutable_data
     );
 
+
     ACTION mintasset(
         name authorized_minter,
         name collection_name,
-        name scheme_name,
-        int32_t preset_id,
+        name schema_name,
+        int32_t template_id,
         name new_asset_owner,
         ATTRIBUTE_MAP immutable_data,
         ATTRIBUTE_MAP mutable_data,
@@ -175,6 +180,7 @@ public:
         uint64_t asset_id,
         ATTRIBUTE_MAP new_mutable_data
     );
+
 
     ACTION announcedepo(
         name owner,
@@ -197,6 +203,7 @@ public:
         name asset_owner,
         uint64_t asset_id
     );
+
 
     ACTION createoffer(
         name sender,
@@ -223,6 +230,7 @@ public:
         uint64_t offer_id
     );
 
+
     void receive_token_transfer(name from, name to, asset quantity, string memo);
 
 
@@ -243,10 +251,10 @@ public:
         string memo
     );
 
-    ACTION lognewpreset(
-        int32_t preset_id,
+    ACTION lognewtempl(
+        int32_t template_id,
         name authorized_creator,
-        name scheme_name,
+        name schema_name,
         name collection_name,
         bool transferable,
         bool burnable,
@@ -258,8 +266,8 @@ public:
         uint64_t asset_id,
         name authorized_minter,
         name collection_name,
-        name scheme_name,
-        int32_t preset_id,
+        name schema_name,
+        int32_t template_id,
         name new_asset_owner,
         ATTRIBUTE_MAP immutable_data,
         ATTRIBUTE_MAP mutable_data,
@@ -283,8 +291,8 @@ public:
         name asset_owner,
         uint64_t asset_id,
         name collection_name,
-        name scheme_name,
-        int32_t preset_id,
+        name schema_name,
+        int32_t template_id,
         vector <asset> backed_tokens,
         ATTRIBUTE_MAP old_immutable_data,
         ATTRIBUTE_MAP old_mutable_data,
@@ -314,36 +322,36 @@ private:
 
 
     //Scope: collection_name
-    TABLE schemes_s{
-        name                scheme_name;
+    TABLE schemas_s{
+        name                schema_name;
         vector<FORMAT>      format;
 
-        uint64_t primary_key() const { return scheme_name.value; }
+        uint64_t primary_key() const { return schema_name.value; }
     };
-    typedef multi_index<name("schemes"), schemes_s> schemes_t;
+    typedef multi_index<name("schemas"), schemas_s> schemas_t;
 
 
     //Scope: collection_name
-    TABLE presets_s{
-        uint32_t            preset_id;
-        name                scheme_name;
+    TABLE templates_s{
+        uint32_t            template_id;
+        name                schema_name;
         bool                transferable;
         bool                burnable;
         uint32_t            max_supply;
         uint32_t            issued_supply;
         vector<uint8_t>     immutable_serialized_data;
 
-        uint64_t primary_key() const { return uint64_t{preset_id}; }
+        uint64_t primary_key() const { return uint64_t{template_id}; }
     };
-    typedef multi_index<name("presets"), presets_s> presets_t;
+    typedef multi_index<name("templates"), templates_s> templates_t;
 
 
     //Scope: owner
     TABLE assets_s{
         uint64_t            asset_id;
         name                collection_name;
-        name                scheme_name;
-        int32_t             preset_id;
+        name                schema_name;
+        int32_t             template_id;
         name                ram_payer;
         vector<asset>       backed_tokens;
         vector<uint8_t>     immutable_serialized_data;
@@ -382,7 +390,7 @@ private:
 
     TABLE config_s{
         uint64_t            asset_counter = 1099511627780; //2^40
-        int32_t             preset_counter = 1;
+        int32_t             template_counter = 1;
         uint64_t            offer_counter = 1;
         vector<FORMAT>      collection_format = {};
         vector<TOKEN>       supported_tokens = {};
@@ -431,9 +439,9 @@ private:
 
     assets_t get_assets(name acc);
 
-    schemes_t get_schemes(name collection_name);
+    schemas_t get_schemas(name collection_name);
 
-    presets_t get_presets(name collection_name);
+    templates_t get_templates(name collection_name);
 };
 
 extern "C"
@@ -443,10 +451,10 @@ void apply(uint64_t receiver, uint64_t code, uint64_t action) {
             EOSIO_DISPATCH_HELPER(atomicassets, \
             (init)(admincoledit)(setversion)(addconftoken)(transfer) \
             (createcol)(setcoldata)(addcolauth)(remcolauth)(addnotifyacc)(remnotifyacc) \
-            (setmarketfee)(forbidnotify)(createscheme)(extendscheme)(createpreset) \
+            (setmarketfee)(forbidnotify)(createschema)(extendschema)(createtempl) \
             (mintasset)(setassetdata)(announcedepo)(withdraw)(backasset)(burnasset) \
             (createoffer)(canceloffer)(acceptoffer)(declineoffer)(payofferram) \
-            (logtransfer)(lognewoffer)(lognewpreset)(logmint)(logsetdata)(logbackasset)(logburnasset))
+            (logtransfer)(lognewoffer)(lognewtempl)(logmint)(logsetdata)(logbackasset)(logburnasset))
         }
     } else if (action == name("transfer").value) {
         eosio::execute_action(name(receiver), name(code), &atomicassets::receive_token_transfer);
