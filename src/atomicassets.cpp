@@ -463,6 +463,41 @@ ACTION atomicassets::createtempl(
 
 
 /**
+* Sets the max supply of the template to the issued supply
+* This means that afterwards no new assets of this template can be minted
+* @required_auth authorized_editor, who is within the authorized_accounts list of the collection
+**/
+ACTION atomicassets::locktemplate(
+    name authorized_editor,
+    name collection_name,
+    uint32_t template_id
+) {
+    require_auth(authorized_editor);
+
+    auto collection_itr = collections.require_find(collection_name.value,
+        "No collection with this name exists");
+
+    check(std::find(
+        collection_itr->authorized_accounts.begin(),
+        collection_itr->authorized_accounts.end(),
+        authorized_editor
+        ) != collection_itr->authorized_accounts.end(),
+        "The creator is not authorized within the collection");
+    
+    templates_t collection_templates = get_templates(collection_name);
+    auto template_itr = collection_templates.require_find(template_id,
+        "No template with the specified id exists for the specified colleciton");
+    
+    check(template_itr->issued_supply != 0,
+        "Can't lock a template that does not have at least one issued asset");
+    
+    collection_templates.modify(template_itr, same_payer, [&](auto& _template) {
+        _template.max_supply = _template.issued_supply;
+    });
+}
+
+
+/**
 *  Creates a new asset
 *  Doesn't work if the template has a specified max_supply that has already been reached
 *  @required_auth authorized_minter, who is within the authorized_accounts list of the collection

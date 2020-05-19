@@ -162,6 +162,12 @@ public:
         ATTRIBUTE_MAP immutable_data
     );
 
+    ACTION locktemplate(
+        name authorized_editor,
+        name collection_name,
+        uint32_t template_id
+    );
+
 
     ACTION mintasset(
         name authorized_minter,
