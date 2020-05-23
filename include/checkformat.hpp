@@ -91,5 +91,5 @@ void check_format(vector <FORMAT> lines) {
     }
 
     check(found_name,
-        "A format line with {\"name\": \"name\" and \"type\": \"string\"} needs to be defined for every scheme");
+        "A format line with {\"name\": \"name\" and \"type\": \"string\"} needs to be defined for every schema");
 }
