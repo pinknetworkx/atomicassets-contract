@@ -326,7 +326,8 @@ namespace atomicdata {
         } else if (type == "ipfs") {
             check(std::holds_alternative<string>(attr), "Expected a string (ipfs), but got something else");
             vector <uint8_t> result = {};
-            DecodeBase58(std::get<string>(attr), result);
+            check(DecodeBase58(std::get<string>(attr), result),
+                "Error when decoding IPFS string");
             vector <uint8_t> length_bytes = toVarintBytes(result.size());
             result.insert(result.begin(), length_bytes.begin(), length_bytes.end());
             return result;
