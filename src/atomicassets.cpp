@@ -241,7 +241,7 @@ ACTION atomicassets::addnotifyacc(
     vector <name> notify_accounts = collection_itr->notify_accounts;
 
     check(std::find(notify_accounts.begin(), notify_accounts.end(), account_to_add) == notify_accounts.end(),
-        "The account is already a nofity account");
+        "The account is already a notify account");
 
     notify_accounts.push_back(account_to_add);
 
