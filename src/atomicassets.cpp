@@ -476,7 +476,7 @@ ACTION atomicassets::locktemplate(
     check_has_collection_auth(
         authorized_editor,
         collection_name,
-        "The creator is not authorized within the collection"
+        "The editor is not authorized within the collection"
     );
     
     templates_t collection_templates = get_templates(collection_name);
