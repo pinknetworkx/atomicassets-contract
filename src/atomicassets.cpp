@@ -339,12 +339,11 @@ ACTION atomicassets::createschema(
     auto collection_itr = collections.require_find(collection_name.value,
         "No collection with this name exists");
 
-    check(std::find(
-        collection_itr->authorized_accounts.begin(),
-        collection_itr->authorized_accounts.end(),
-        authorized_creator
-        ) != collection_itr->authorized_accounts.end(),
-        "The creator is not authorized within the collection");
+    check_has_collection_auth(
+        authorized_creator,
+        collection_name,
+        "The creator is not authorized within the collection"
+    );
 
     schemas_t collection_schemas = get_schemas(collection_name);
 
@@ -374,14 +373,12 @@ ACTION atomicassets::extendschema(
 
     auto collection_itr = collections.require_find(collection_name.value,
         "No collection with this name exists");
-
-    check(std::find(
-        collection_itr->authorized_accounts.begin(),
-        collection_itr->authorized_accounts.end(),
-        authorized_editor
-        ) != collection_itr->authorized_accounts.end(),
-        "The editor is not authorized within the collection");
-
+    
+    check_has_collection_auth(
+        authorized_editor,
+        collection_name,
+        "The editor is not authorized within the collection"
+    );
 
     check(schema_format_extension.size() != 0, "Need to add at least one new line");
 
@@ -416,13 +413,12 @@ ACTION atomicassets::createtempl(
 
     auto collection_itr = collections.require_find(collection_name.value,
         "No collection with this name exists");
-
-    check(std::find(
-        collection_itr->authorized_accounts.begin(),
-        collection_itr->authorized_accounts.end(),
-        authorized_creator
-        ) != collection_itr->authorized_accounts.end(),
-        "The creator is not authorized within the collection");
+    
+    check_has_collection_auth(
+        authorized_creator,
+        collection_name,
+        "The creator is not authorized within the collection"
+    );
 
     schemas_t collection_schemas = get_schemas(collection_name);
     auto schema_itr = collection_schemas.require_find(schema_name.value,
@@ -476,13 +472,12 @@ ACTION atomicassets::locktemplate(
 
     auto collection_itr = collections.require_find(collection_name.value,
         "No collection with this name exists");
-
-    check(std::find(
-        collection_itr->authorized_accounts.begin(),
-        collection_itr->authorized_accounts.end(),
-        authorized_editor
-        ) != collection_itr->authorized_accounts.end(),
-        "The creator is not authorized within the collection");
+    
+    check_has_collection_auth(
+        authorized_editor,
+        collection_name,
+        "The creator is not authorized within the collection"
+    );
     
     templates_t collection_templates = get_templates(collection_name);
     auto template_itr = collection_templates.require_find(template_id,
@@ -516,12 +511,12 @@ ACTION atomicassets::mintasset(
     require_auth(authorized_minter);
 
     auto collection_itr = collections.find(collection_name.value);
-    check(std::find(
-        collection_itr->authorized_accounts.begin(),
-        collection_itr->authorized_accounts.end(),
-        authorized_minter
-        ) != collection_itr->authorized_accounts.end(),
-        "The minter is not authorized within the collection");
+
+    check_has_collection_auth(
+        authorized_minter,
+        collection_name,
+        "The minter is not authorized within the collection"
+    );
 
     if (template_id >= 0) {
         templates_t collection_templates = get_templates(collection_name);
@@ -613,12 +608,12 @@ ACTION atomicassets::setassetdata(
         "No asset with this id exists");
 
     auto collection_itr = collections.find(asset_itr->collection_name.value);
-    check(std::find(
-        collection_itr->authorized_accounts.begin(),
-        collection_itr->authorized_accounts.end(),
-        authorized_editor
-        ) != collection_itr->authorized_accounts.end(),
-        "The editor is not authorized within the collection");
+
+    check_has_collection_auth(
+        authorized_editor,
+        asset_itr->collection_name,
+        "The editor is not authorized within the collection"
+    );
 
     check_name_length(new_mutable_data);
 
@@ -1368,6 +1363,28 @@ void atomicassets::internal_decrease_balance(
     } else {
         balances.erase(balance_itr);
     }
+}
+
+
+
+
+/**
+* Checks if the account_to_check is in the authorized_accounts vector of the specified collection
+*/
+void atomicassets::check_has_collection_auth(
+    name account_to_check,
+    name collection_name,
+    string error_message
+) {
+    auto collection_itr = collections.require_find(collection_name.value,
+        "No collection with this name exists");
+
+    check(std::find(
+        collection_itr->authorized_accounts.begin(),
+        collection_itr->authorized_accounts.end(),
+        account_to_check
+        ) != collection_itr->authorized_accounts.end(),
+        error_message);
 }
 
 

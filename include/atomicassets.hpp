@@ -441,6 +441,12 @@ private:
         asset quantity
     );
 
+    void check_has_collection_auth(
+        name account_to_check,
+        name collection_name,
+        string error_message
+    );
+
     void check_name_length(ATTRIBUTE_MAP data);
 
     assets_t get_assets(name acc);
