@@ -441,6 +441,10 @@ private:
         asset quantity
     );
 
+    void notify_collection_accounts(
+        name collection_name
+    );
+
     void check_has_collection_auth(
         name account_to_check,
         name collection_name,

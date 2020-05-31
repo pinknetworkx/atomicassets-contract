@@ -1057,10 +1057,7 @@ ACTION atomicassets::logtransfer(
 ) {
     require_auth(get_self());
 
-    auto collection_itr = collections.find(collection_name.value);
-    for (const name &notify_account : collection_itr->notify_accounts) {
-        require_recipient(notify_account);
-    }
+    notify_collection_accounts(collection_name);
 }
 
 
@@ -1091,10 +1088,7 @@ ACTION atomicassets::lognewtempl(
 ) {
     require_auth(get_self());
 
-    auto collection_itr = collections.find(collection_name.value);
-    for (const name &notify_account : collection_itr->notify_accounts) {
-        require_recipient(notify_account);
-    }
+    notify_collection_accounts(collection_name);
 }
 
 
@@ -1113,10 +1107,7 @@ ACTION atomicassets::logmint(
 
     require_recipient(new_asset_owner);
 
-    auto collection_itr = collections.find(collection_name.value);
-    for (const name &notify_account : collection_itr->notify_accounts) {
-        require_recipient(notify_account);
-    }
+    notify_collection_accounts(collection_name);
 }
 
 
@@ -1130,10 +1121,8 @@ ACTION atomicassets::logsetdata(
 
     assets_t owner_assets = get_assets(asset_owner);
     auto asset_itr = owner_assets.find(asset_id);
-    auto collection_itr = collections.find(asset_itr->collection_name.value);
-    for (const name &notify_account : collection_itr->notify_accounts) {
-        require_recipient(notify_account);
-    }
+
+    notify_collection_accounts(asset_itr->collection_name);
 }
 
 
@@ -1148,10 +1137,8 @@ ACTION atomicassets::logbackasset(
 
     assets_t owner_assets = get_assets(asset_owner);
     auto asset_itr = owner_assets.find(asset_id);
-    auto collection_itr = collections.find(asset_itr->collection_name.value);
-    for (const name &notify_account : collection_itr->notify_accounts) {
-        require_recipient(notify_account);
-    }
+
+    notify_collection_accounts(asset_itr->collection_name);
 }
 
 
@@ -1168,10 +1155,7 @@ ACTION atomicassets::logburnasset(
 ) {
     require_auth(get_self());
 
-    auto collection_itr = collections.find(collection_name.value);
-    for (const name &notify_account : collection_itr->notify_accounts) {
-        require_recipient(notify_account);
-    }
+    notify_collection_accounts(collection_name);
 }
 
 
@@ -1362,6 +1346,21 @@ void atomicassets::internal_decrease_balance(
         });
     } else {
         balances.erase(balance_itr);
+    }
+}
+
+
+/**
+* Notifies all of a collection's notify accounts using require_recipient
+*/
+void atomicassets::notify_collection_accounts(
+    name collection_name
+) {
+    auto collection_itr = collections.require_find(collection_name.value,
+        "No collection with this name exists");
+    
+    for (const name &notify_account : collection_itr->notify_accounts) {
+        require_recipient(notify_account);
     }
 }
 
