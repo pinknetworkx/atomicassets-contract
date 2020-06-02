@@ -703,6 +703,8 @@ ACTION atomicassets::withdraw(
 ) {
     require_auth(owner);
 
+    check(token_to_withdraw.amount > 0, "token_to_withdraw must be positive");
+
     //The internal_decrease_balance function will throw if owner does not have a sufficient balance
     internal_decrease_balance(owner, token_to_withdraw);
 
@@ -1267,7 +1269,7 @@ void atomicassets::internal_back_asset(
     uint64_t asset_id,
     asset token_to_back
 ) {
-    check(token_to_back.amount > 0, "token_to_back can't be 0");
+    check(token_to_back.amount > 0, "token_to_back must be positive");
 
     //The internal_decrease_balance function will throw if payer does not have a sufficient balance
     internal_decrease_balance(payer, token_to_back);
