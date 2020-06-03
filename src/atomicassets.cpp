@@ -1183,6 +1183,11 @@ void atomicassets::internal_transfer(
 
     check(memo.length() <= 256, "A transfer memo can only be 256 characters max");
 
+    vector<uint64_t> asset_ids_copy = asset_ids;
+    std::sort(asset_ids_copy.begin(), asset_ids_copy.end());
+    check(std::adjacent_find(asset_ids_copy.begin(), asset_ids_copy.end()) == asset_ids_copy.end(),
+        "Can't transfer the same asset multiple times");
+
     assets_t from_assets = get_assets(from);
     assets_t to_assets = get_assets(to);
 
