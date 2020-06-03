@@ -786,9 +786,8 @@ ACTION atomicassets::burnasset(
                         string("Backed asset payout - ID: ") + to_string(asset_id)
                     )
                 ).send();
+                break;
             }
-
-            break;
         }
     }
 
