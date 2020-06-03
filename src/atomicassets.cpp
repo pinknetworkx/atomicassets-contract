@@ -845,6 +845,16 @@ ACTION atomicassets::createoffer(
 
     check(memo.length() <= 256, "An offer memo can only be 256 characters max");
 
+    vector<uint64_t> sender_ids_copy = sender_asset_ids;
+    std::sort(sender_ids_copy.begin(), sender_ids_copy.end());
+    check(std::adjacent_find(sender_ids_copy.begin(), sender_ids_copy.end()) == sender_ids_copy.end(),
+        "The assets in sender_asset_ids must be unique");
+    
+    vector<uint64_t> recipient_ids_copy = recipient_asset_ids;
+    std::sort(recipient_ids_copy.begin(), recipient_ids_copy.end());
+    check(std::adjacent_find(recipient_ids_copy.begin(), recipient_ids_copy.end()) == recipient_ids_copy.end(),
+        "The assets in recipient_asset_ids must be unique");
+
     assets_t sender_assets = get_assets(sender);
     assets_t recipient_assets = get_assets(recipient);
 
