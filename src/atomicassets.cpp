@@ -838,6 +838,8 @@ ACTION atomicassets::createoffer(
 ) {
     require_auth(sender);
 
+    check(is_account(recipient), "The recipient account deos not exist");
+
     check(sender != recipient, "Can't send an offer to yourself");
 
     check(sender_asset_ids.size() != 0 || recipient_asset_ids.size() != 0,
