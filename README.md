@@ -5,6 +5,10 @@ It focuses heavily on RAM efficiency and usability.
 
 ### [Documentation can be found here.](https://github.com/pinknetworkx/atomicassets-contracts/wiki)
 
+> :warning: **Older eosio versions will think that the ABI is invalid**: The bug causing this was fixed in 1.8.10 / 2.0.0
+
+The code previously included a workaround for that. If you plan to use AtomicAssets with an earlier eosio version, you should apply the workaround to the _atomicdata.hpp_ file: https://github.com/pinknetworkx/atomicassets-contracts/commit/b0a2c02761f88e2af1a52e8d0cda167918aa77e3
+
 ## Key Features
 
 - **Presets**
