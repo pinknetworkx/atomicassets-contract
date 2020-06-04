@@ -9,8 +9,8 @@ using namespace std;
 
 namespace atomicdata {
 
-    //Custom vector types need to be defined because otherwise a bug in Nodeos (tested for 1.8.0)
-    //would cause all get_table_row calls to return an error
+    //Custom vector types need to be defined because otherwise a bug in the ABI serialization
+    //would cause the ABI to be invalid
     typedef std::vector <int8_t> INT8_VEC;
     typedef std::vector <int16_t> INT16_VEC;
     typedef std::vector <int32_t> INT32_VEC;

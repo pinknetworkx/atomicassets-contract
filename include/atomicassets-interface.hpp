@@ -16,14 +16,28 @@ using namespace std;
 
 namespace atomicassets {
 
+    //Custom vector types need to be defined because otherwise a bug in the ABI serialization
+    //would cause the ABI to be invalid
+    typedef std::vector <int8_t> INT8_VEC;
+    typedef std::vector <int16_t> INT16_VEC;
+    typedef std::vector <int32_t> INT32_VEC;
+    typedef std::vector <int64_t> INT64_VEC;
+    typedef std::vector <uint8_t> UINT8_VEC;
+    typedef std::vector <uint16_t> UINT16_VEC;
+    typedef std::vector <uint32_t> UINT32_VEC;
+    typedef std::vector <uint64_t> UINT64_VEC;
+    typedef std::vector <float> FLOAT_VEC;
+    typedef std::vector <double> DOUBLE_VEC;
+    typedef std::vector <std::string> STRING_VEC;
+
     typedef std::variant< \
-    int8_t, int16_t, int32_t, int64_t, \
-    uint8_t, uint16_t, uint32_t, uint64_t, \
-    float, double, std::string, \
-    vector<int8_t>, vector<int16_t>, vector<int32_t>, vector<int64_t>, \
-    vector<uint8_t>, vector<uint16_t>, vector<uint32_t>, vector<uint64_t>, \
-    vector<float>, vector<double>, vector<string>>
-    ATOMIC_ATTRIBUTE;
+        int8_t, int16_t, int32_t, int64_t, \
+        uint8_t, uint16_t, uint32_t, uint64_t, \
+        float, double, std::string, \
+        atomicdata::INT8_VEC, atomicdata::INT16_VEC, atomicdata::INT32_VEC, atomicdata::INT64_VEC, \
+        atomicdata::UINT8_VEC, atomicdata::UINT16_VEC, atomicdata::UINT32_VEC, atomicdata::UINT64_VEC, \
+        atomicdata::FLOAT_VEC, atomicdata::DOUBLE_VEC, atomicdata::STRING_VEC
+    > ATOMIC_ATTRIBUTE;
     
     typedef std::map <std::string, ATOMIC_ATTRIBUTE> ATTRIBUTE_MAP;
 
