@@ -14,6 +14,8 @@ and custom data types.
 using namespace eosio;
 using namespace std;
 
+static constexpr name ATOMICASSETS_ACCOUNT = name("atomicassets");
+
 namespace atomicassets {
 
     //Custom vector types need to be defined because otherwise a bug in the ABI serialization
@@ -34,9 +36,9 @@ namespace atomicassets {
         int8_t, int16_t, int32_t, int64_t, \
         uint8_t, uint16_t, uint32_t, uint64_t, \
         float, double, std::string, \
-        atomicdata::INT8_VEC, atomicdata::INT16_VEC, atomicdata::INT32_VEC, atomicdata::INT64_VEC, \
-        atomicdata::UINT8_VEC, atomicdata::UINT16_VEC, atomicdata::UINT32_VEC, atomicdata::UINT64_VEC, \
-        atomicdata::FLOAT_VEC, atomicdata::DOUBLE_VEC, atomicdata::STRING_VEC
+        INT8_VEC, INT16_VEC, INT32_VEC, INT64_VEC, \
+        UINT8_VEC, UINT16_VEC, UINT32_VEC, UINT64_VEC, \
+        FLOAT_VEC, DOUBLE_VEC, STRING_VEC
     > ATOMIC_ATTRIBUTE;
     
     typedef std::map <std::string, ATOMIC_ATTRIBUTE> ATTRIBUTE_MAP;
@@ -66,19 +68,19 @@ namespace atomicassets {
 
 
     //Scope: collection_name
-    struct schemes_s{
-        name                scheme_name;
+    struct schemas_s{
+        name                schema_name;
         vector<FORMAT>      format;
 
-        uint64_t primary_key() const { return scheme_name.value; }
+        uint64_t primary_key() const { return schema_name.value; }
     };
-    typedef multi_index<name("schemes"), schemes_s> schemes_t;
+    typedef multi_index<name("schemas"), schemas_s> schemas_t;
 
 
     //Scope: collection_name
     struct templates_s{
         uint32_t            template_id;
-        name                scheme_name;
+        name                schema_name;
         bool                transferable;
         bool                burnable;
         uint32_t            max_supply;
@@ -94,7 +96,7 @@ namespace atomicassets {
     struct assets_s{
         uint64_t            asset_id;
         name                collection_name;
-        name                scheme_name;
+        name                schema_name;
         int32_t             template_id;
         name                ram_payer;
         vector<asset>       backed_tokens;
@@ -158,8 +160,8 @@ namespace atomicassets {
         return assets_t(ATOMICASSETS_ACCOUNT, acc.value);
     }
 
-    schemes_t get_schemes(name collection_name) {
-        return schemes_t(ATOMICASSETS_ACCOUNT, collection_name.value);
+    schemas_t get_schemas(name collection_name) {
+        return schemas_t(ATOMICASSETS_ACCOUNT, collection_name.value);
     }
 
     templates_t get_templates(name collection_name) {
