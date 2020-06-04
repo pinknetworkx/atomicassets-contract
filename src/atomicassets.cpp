@@ -839,6 +839,8 @@ ACTION atomicassets::createoffer(
 ) {
     require_auth(sender);
 
+    check(is_account(recipient), "The recipient account deos not exist");
+
     check(sender != recipient, "Can't send an offer to yourself");
 
     check(sender_asset_ids.size() != 0 || recipient_asset_ids.size() != 0,
@@ -846,7 +848,17 @@ ACTION atomicassets::createoffer(
 
     check(memo.length() <= 256, "An offer memo can only be 256 characters max");
 
-    assets_t sender_assets    = get_assets(sender);
+    vector<uint64_t> sender_ids_copy = sender_asset_ids;
+    std::sort(sender_ids_copy.begin(), sender_ids_copy.end());
+    check(std::adjacent_find(sender_ids_copy.begin(), sender_ids_copy.end()) == sender_ids_copy.end(),
+        "The assets in sender_asset_ids must be unique");
+    
+    vector<uint64_t> recipient_ids_copy = recipient_asset_ids;
+    std::sort(recipient_ids_copy.begin(), recipient_ids_copy.end());
+    check(std::adjacent_find(recipient_ids_copy.begin(), recipient_ids_copy.end()) == recipient_ids_copy.end(),
+        "The assets in recipient_asset_ids must be unique");
+
+    assets_t sender_assets = get_assets(sender);
     assets_t recipient_assets = get_assets(recipient);
 
     for (uint64_t asset_id : sender_asset_ids) {
@@ -1183,6 +1195,11 @@ void atomicassets::internal_transfer(
     check(asset_ids.size() != 0, "asset_ids needs to contain at least one id");
 
     check(memo.length() <= 256, "A transfer memo can only be 256 characters max");
+
+    vector<uint64_t> asset_ids_copy = asset_ids;
+    std::sort(asset_ids_copy.begin(), asset_ids_copy.end());
+    check(std::adjacent_find(asset_ids_copy.begin(), asset_ids_copy.end()) == asset_ids_copy.end(),
+        "Can't transfer the same asset multiple times");
 
     assets_t from_assets = get_assets(from);
     assets_t to_assets   = get_assets(to);
