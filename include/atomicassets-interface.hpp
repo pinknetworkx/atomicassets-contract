@@ -76,8 +76,8 @@ namespace atomicassets {
 
 
     //Scope: collection_name
-    struct presets_s{
-        uint32_t            preset_id;
+    struct templates_s{
+        uint32_t            template_id;
         name                scheme_name;
         bool                transferable;
         bool                burnable;
@@ -85,9 +85,9 @@ namespace atomicassets {
         uint32_t            issued_supply;
         vector<uint8_t>     immustruct_serialized_data;
 
-        uint64_t primary_key() const { return uint64_t{preset_id}; }
+        uint64_t primary_key() const { return uint64_t{template_id}; }
     };
-    typedef multi_index<name("presets"), presets_s> presets_t;
+    typedef multi_index<name("templates"), templates_s> templates_t;
 
 
     //Scope: owner
@@ -95,7 +95,7 @@ namespace atomicassets {
         uint64_t            asset_id;
         name                collection_name;
         name                scheme_name;
-        int32_t             preset_id;
+        int32_t             template_id;
         name                ram_payer;
         vector<asset>       backed_tokens;
         vector<uint8_t>     immustruct_serialized_data;
@@ -134,7 +134,7 @@ namespace atomicassets {
 
     struct config_s{
         uint64_t            asset_counter = 1099511627780; //2^40
-        int32_t             preset_counter = 1;
+        int32_t             template_counter = 1;
         uint64_t            offer_counter = 1;
         vector<FORMAT>      collection_format = {};
         vector<TOKEN>       supported_tokens = {};
@@ -162,7 +162,7 @@ namespace atomicassets {
         return schemes_t(ATOMICASSETS_ACCOUNT, collection_name.value);
     }
 
-    presets_t get_presets(name collection_name) {
-        return presets_t(ATOMICASSETS_ACCOUNT, collection_name.value);
+    templates_t get_templates(name collection_name) {
+        return templates_t(ATOMICASSETS_ACCOUNT, collection_name.value);
     }
 };
