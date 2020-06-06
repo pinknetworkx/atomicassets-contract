@@ -75,7 +75,8 @@ CONTRACT atomicassets : public contract {
 public:
     using contract::contract;
 
-    ACTION init();
+    atomicassets(name self, name code, datastream<const char *> ds);
+    ~atomicassets();
 
     ACTION admincoledit(vector <FORMAT> collection_format_extension);
 
@@ -414,12 +415,12 @@ private:
     typedef multi_index<name("tokenconfigs"), tokenconfigs_s> tokenconfigs_t_for_abi;
 
 
-    collections_t collections = collections_t(get_self(), get_self().value);
-    offers_t offers = offers_t(get_self(), get_self().value);
-    balances_t balances = balances_t(get_self(), get_self().value);
-    config_t config = config_t(get_self(), get_self().value);
-    tokenconfigs_t tokenconfigs = tokenconfigs_t(get_self(), get_self().value);
-
+    collections_t collections;
+    offers_t offers;
+    balances_t balances;
+    
+    config_s config;
+    tokenconfigs_s tokenconfigs;
 
     void internal_transfer(
         name from,

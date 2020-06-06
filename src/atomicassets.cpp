@@ -3,15 +3,16 @@
 static constexpr symbol WAX_SYMBOL = symbol("WAX", 8);
 static constexpr double MAX_MARKET_FEE = 0.15;
 
+atomicassets::atomicassets(name self, name code, datastream<const char *> ds)
+    : contract(self, code, ds), collections(get_self(), get_self().value), offers(get_self(), get_self().value),
+      balances(get_self(), get_self().value) {
+    config       = config_t(get_self(), get_self().value).get_or_create(get_self());
+    tokenconfigs = tokenconfigs_t(get_self(), get_self().value).get_or_create(get_self());
+}
 
-/**
-*  Initializes the config table. Only needs to be called once when first deploying the contract
-*  @required_auth The contract itself
-*/
-ACTION atomicassets::init() {
-    require_auth(get_self());
-    config.get_or_create(get_self(), config_s{});
-    tokenconfigs.get_or_create(get_self(), tokenconfigs_s{});
+atomicassets::~atomicassets() {
+    config_t(get_self(), get_self().value).set(config, get_self());
+    tokenconfigs_t(get_self(), get_self().value).set(tokenconfigs, get_self());
 }
 
 /**
@@ -23,15 +24,12 @@ ACTION atomicassets::admincoledit(vector <atomicdata::FORMAT> collection_format_
 
     check(collection_format_extension.size() != 0, "Need to add at least one new line");
 
-    config_s current_config = config.get();
-    current_config.collection_format.insert(
-        current_config.collection_format.end(),
+    config.collection_format.insert(
+        config.collection_format.end(),
         collection_format_extension.begin(),
         collection_format_extension.end()
     );
-    check_format(current_config.collection_format);
-
-    config.set(current_config, get_self());
+    check_format(config.collection_format);
 }
 
 
@@ -41,11 +39,7 @@ ACTION atomicassets::admincoledit(vector <atomicdata::FORMAT> collection_format_
 */
 ACTION atomicassets::setversion(string new_version) {
     require_auth(get_self());
-
-    tokenconfigs_s current_tokenconfigs = tokenconfigs.get();
-    current_tokenconfigs.version = new_version;
-
-    tokenconfigs.set(current_tokenconfigs, get_self());
+    tokenconfigs.version = new_version;
 }
 
 
@@ -56,18 +50,15 @@ ACTION atomicassets::setversion(string new_version) {
 ACTION atomicassets::addconftoken(name token_contract, symbol token_symbol) {
     require_auth(get_self());
 
-    config_s current_config = config.get();
-    for (TOKEN token : current_config.supported_tokens) {
+    for (TOKEN token : config.supported_tokens) {
         check(token.token_symbol != token_symbol,
             "A token with this symbol is already supported");
     }
 
-    current_config.supported_tokens.push_back({
+    config.supported_tokens.push_back({
         .token_contract = token_contract,
         .token_symbol = token_symbol
     });
-
-    config.set(current_config, get_self());
 }
 
 
@@ -126,8 +117,6 @@ ACTION atomicassets::createcol(
 
     check_name_length(data);
 
-    config_s current_config = config.get();
-
     collections.emplace(author, [&](auto &_collection) {
         _collection.collection_name = collection_name;
         _collection.author = author;
@@ -135,7 +124,7 @@ ACTION atomicassets::createcol(
         _collection.authorized_accounts = authorized_accounts;
         _collection.notify_accounts = notify_accounts;
         _collection.market_fee = market_fee;
-        _collection.serialized_data = serialize(data, current_config.collection_format);
+        _collection.serialized_data = serialize(data, config.collection_format);
     });
 }
 
@@ -156,9 +145,8 @@ ACTION atomicassets::setcoldata(
 
     check_name_length(data);
 
-    config_s current_config = config.get();
     collections.modify(collection_itr, same_payer, [&](auto &_collection) {
-        _collection.serialized_data = serialize(data, current_config.collection_format);
+        _collection.serialized_data = serialize(data, config.collection_format);
     });
 }
 
@@ -424,9 +412,7 @@ ACTION atomicassets::createtempl(
     auto schema_itr = collection_schemas.require_find(schema_name.value,
         "No schema with this name exists");
 
-    config_s current_config = config.get();
-    uint32_t template_id = current_config.template_counter++;
-    config.set(current_config, get_self());
+    uint32_t template_id = config.template_counter++;
 
     templates_t collection_templates = get_templates(collection_name);
 
@@ -547,9 +533,7 @@ ACTION atomicassets::mintasset(
     check_name_length(immutable_data);
     check_name_length(mutable_data);
 
-    config_s current_config = config.get();
-    uint64_t asset_id = current_config.asset_counter++;
-    config.set(current_config, get_self());
+    uint64_t asset_id = config.asset_counter++;
 
     assets_t new_owner_assets = get_assets(new_asset_owner);
     new_owner_assets.emplace(authorized_minter, [&](auto &_asset) {
@@ -657,10 +641,8 @@ ACTION atomicassets::announcedepo(
 ) {
     require_auth(owner);
 
-    config_s current_config = config.get();
-
     bool is_supported = false;
-    for (TOKEN supported_token : current_config.supported_tokens) {
+    for (TOKEN supported_token : config.supported_tokens) {
         if (supported_token.token_symbol == symbol_to_announce) {
             is_supported = true;
             break;
@@ -708,9 +690,7 @@ ACTION atomicassets::withdraw(
     //The internal_decrease_balance function will throw if owner does not have a sufficient balance
     internal_decrease_balance(owner, token_to_withdraw);
 
-    config_s current_config = config.get();
-
-    for (TOKEN supported_token : current_config.supported_tokens) {
+    for (TOKEN supported_token : config.supported_tokens) {
         if (supported_token.token_symbol == token_to_withdraw.symbol) {
             action(
                 permission_level{get_self(), name("active")},
@@ -770,10 +750,9 @@ ACTION atomicassets::burnasset(
         check(template_itr->burnable, "The asset is not burnable");
     };
 
-    config_s current_config = config.get();
 
     for (asset backed_quantity : asset_itr->backed_tokens) {
-        for (TOKEN supported_token : current_config.supported_tokens) {
+        for (TOKEN supported_token : config.supported_tokens) {
             if (supported_token.token_symbol == backed_quantity.symbol) {
                 action(
                     permission_level{get_self(), name("active")},
@@ -885,8 +864,7 @@ ACTION atomicassets::createoffer(
         }
     }
 
-    config_s current_config = config.get();
-    uint64_t offer_id = current_config.offer_counter++;
+    uint64_t offer_id = config.offer_counter++;
     offers.emplace(sender, [&](auto &_offer) {
         _offer.offer_id = offer_id;
         _offer.sender = sender;
@@ -895,8 +873,6 @@ ACTION atomicassets::createoffer(
         _offer.recipient_asset_ids = recipient_asset_ids;
         _offer.memo = memo;
     });
-
-    config.set(current_config, get_self());
 
     action(
         permission_level{get_self(), name("active")},
@@ -1025,10 +1001,8 @@ void atomicassets::receive_token_transfer(name from, name to, asset quantity, st
         return;
     }
 
-    config_s current_config = config.get();
-
     bool is_supported = false;
-    for (TOKEN token : current_config.supported_tokens) {
+    for (TOKEN token : config.supported_tokens) {
         if (token.token_contract == get_first_receiver() && token.token_symbol == quantity.symbol) {
             is_supported = true;
         }
@@ -1039,21 +1013,21 @@ void atomicassets::receive_token_transfer(name from, name to, asset quantity, st
         auto balance_itr = balances.require_find(from.value,
             "You need to first initialize the balance table row using the announcedepo action");
 
-        //Quantities refers to the quantities value in the balances table row, quantity is the asset that was transferred
-        vector <asset> quantities = balance_itr->quantities;
-        bool found_token = false;
-        for (asset &token : quantities) {
-            if (token.symbol == quantity.symbol) {
-                found_token = true;
-                token.amount += quantity.amount;
-                break;
-            }
+    // Quantities refers to the quantities value in the balances table row, quantity is the asset that was transferred
+    vector<asset> quantities  = balance_itr->quantities;
+    bool          found_token = false;
+    for (asset &token : quantities) {
+        if (token.symbol == quantity.symbol) {
+            found_token = true;
+            token.amount += quantity.amount;
+            break;
         }
-        check(found_token, "You first need to announce the asset type you're backing using the announcedepo action");
+    }
+    check(found_token, "You first need to announce the asset type you're backing using the announcedepo action");
 
-        balances.modify(balance_itr, same_payer, [&](auto &_balance) {
-            _balance.quantities = quantities;
-        });
+    balances.modify(balance_itr, same_payer, [&](auto &_balance) {
+        _balance.quantities = quantities;
+    });
 
     } else {
         check(false, "invalid memo");
