@@ -236,7 +236,12 @@ public:
         uint64_t offer_id
     );
 
-    [[eosio::on_notify("*::transfer")]] void receive_token_transfer(name from, name to, asset quantity, string memo);
+    [[eosio::on_notify("*::transfer")]] void receive_token_transfer(
+        name from,
+        name to,
+        asset quantity,
+        string memo
+    );
 
     ACTION logtransfer(
         name collection_name,
