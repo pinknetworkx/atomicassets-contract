@@ -236,9 +236,7 @@ public:
         uint64_t offer_id
     );
 
-
-    void receive_token_transfer(name from, name to, asset quantity, string memo);
-
+    [[eosio::on_notify("*::transfer")]] void receive_token_transfer(name from, name to, asset quantity, string memo);
 
     ACTION logtransfer(
         name collection_name,
@@ -459,20 +457,3 @@ private:
 
     templates_t get_templates(name collection_name);
 };
-
-extern "C"
-void apply(uint64_t receiver, uint64_t code, uint64_t action) {
-    if (code == receiver) {
-        switch (action) {
-            EOSIO_DISPATCH_HELPER(atomicassets, \
-            (init)(admincoledit)(setversion)(addconftoken)(transfer) \
-            (createcol)(setcoldata)(addcolauth)(remcolauth)(addnotifyacc)(remnotifyacc) \
-            (setmarketfee)(forbidnotify)(createschema)(extendschema)(createtempl)(locktemplate) \
-            (mintasset)(setassetdata)(announcedepo)(withdraw)(backasset)(burnasset) \
-            (createoffer)(canceloffer)(acceptoffer)(declineoffer)(payofferram) \
-            (logtransfer)(lognewoffer)(lognewtempl)(logmint)(logsetdata)(logbackasset)(logburnasset))
-        }
-    } else if (action == name("transfer").value) {
-        eosio::execute_action(name(receiver), name(code), &atomicassets::receive_token_transfer);
-    }
-}
