@@ -1,8 +1,5 @@
 #include <atomicassets.hpp>
 
-static constexpr symbol WAX_SYMBOL = symbol("WAX", 8);
-static constexpr double MAX_MARKET_FEE = 0.15;
-
 
 /**
 *  Initializes the config table. Only needs to be called once when first deploying the contract

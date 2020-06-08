@@ -9,67 +9,9 @@ using namespace eosio;
 using namespace std;
 using namespace atomicdata;
 
-/*  
-Nofification Receipts for notify_accounts in a collection
 
+static constexpr double MAX_MARKET_FEE = 0.15;
 
-    ACTION logtransfer(
-        name collection_name,
-        name from,
-        name to,
-        vector <uint64_t> asset_ids,
-        string memo
-    );
-
-    ACTION logmint(
-        uint64_t asset_id,
-        name authorized_minter,
-        name collection_name,
-        name schema_name,
-        int32_t template_id,
-        name new_asset_owner,
-        ATTRIBUTE_MAP immutable_data,
-        ATTRIBUTE_MAP mutable_data,
-        vector <asset> backed_tokens
-    );
-
-    ACTION logsetdata(
-        name asset_owner,
-        uint64_t asset_id,
-        ATTRIBUTE_MAP old_data,
-        ATTRIBUTE_MAP new_data
-    );
-
-    ACTION logbackasset(
-        name asset_owner,
-        uint64_t asset_id,
-        asset backed_token
-    );
-
-    ACTION logburnasset(
-        name asset_owner,
-        uint64_t asset_id,
-        name collection_name,
-        name schema_name,
-        int32_t template_id,
-        vector <asset> backed_tokens,
-        ATTRIBUTE_MAP old_immutable_data,
-        ATTRIBUTE_MAP old_mutable_data,
-        name asset_ram_payer
-    );
-
-    ACTION lognewtempl(
-        int32_t template_id,
-        name authorized_creator,
-        name schema_name,
-        name collection_name,
-        bool transferable,
-        bool burnable,
-        uint32_t max_supply,
-        ATTRIBUTE_MAP immutable_data
-    );
-
-*/
 
 CONTRACT atomicassets : public contract {
 public:
