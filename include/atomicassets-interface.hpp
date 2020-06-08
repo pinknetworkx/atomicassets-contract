@@ -14,9 +14,9 @@ and custom data types.
 using namespace eosio;
 using namespace std;
 
-static constexpr name ATOMICASSETS_ACCOUNT = name("atomicassets");
-
 namespace atomicassets {
+
+    static constexpr name ATOMICASSETS_ACCOUNT = name("atomicassets");
 
     //Custom vector types need to be defined because otherwise a bug in the ABI serialization
     //would cause the ABI to be invalid
