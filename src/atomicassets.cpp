@@ -101,6 +101,8 @@ ACTION atomicassets::createcol(
 
     check(!is_account(collection_name) || has_auth(collection_name),
         "You can't create a collection with a name of an existing, different account");
+    
+    check(collection_name != name(""), "Collection names can't be the empty (length 0) name");
 
     check(collections.find(collection_name.value) == collections.end(),
         "A collection with this name already exists");
@@ -332,6 +334,8 @@ ACTION atomicassets::createschema(
     vector <FORMAT> schema_format
 ) {
     require_auth(authorized_creator);
+    
+    check(schema_name != name(""), "Schema names can't be the empty (length 0) name");
 
     auto collection_itr = collections.require_find(collection_name.value,
         "No collection with this name exists");
