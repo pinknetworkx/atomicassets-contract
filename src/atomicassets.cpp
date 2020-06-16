@@ -99,16 +99,20 @@ ACTION atomicassets::createcol(
 ) {
     require_auth(author);
 
-    check(!is_account(collection_name) || has_auth(collection_name),
-        "You can't create a collection with a name of an existing, different account");
-    
     name collection_name_suffix = collection_name.suffix();
-    if (collection_name != collection_name_suffix) {
-        check(!is_account(collection_name_suffix) || has_auth(collection_name_suffix),
-            "You can't create a collection with a name suffix of an existing, different account");
+
+    if (is_account(collection_name)) {
+        check(has_auth(collection_name),
+            "When the collection has the name of an existing account, its authorization is required");
+    } else {
+        if (collection_name_suffix != collection_name) {
+            check(has_auth(collection_name_suffix),
+                "When the collection name has a suffix, the suffix authorization is required");
+        } else {
+            check(collection_name.length() == 12,
+                "Without special authorization, collection names must be 12 characters long");
+        }
     }
-    
-    check(collection_name != name(""), "Collection names can't be the empty (length 0) name");
 
     check(collections.find(collection_name.value) == collections.end(),
         "A collection with this name already exists");
