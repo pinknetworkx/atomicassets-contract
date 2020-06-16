@@ -345,7 +345,8 @@ ACTION atomicassets::createschema(
 ) {
     require_auth(authorized_creator);
     
-    check(schema_name != name(""), "Schema names can't be the empty (length 0) name");
+    check(1 <= schema_name.length() && schema_name.length() <= 12,
+        "Schema names must be between 1 and 12 characters long");
 
     auto collection_itr = collections.require_find(collection_name.value,
         "No collection with this name exists");
