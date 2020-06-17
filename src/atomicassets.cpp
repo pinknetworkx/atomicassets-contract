@@ -344,7 +344,7 @@ ACTION atomicassets::createschema(
     vector <FORMAT> schema_format
 ) {
     require_auth(authorized_creator);
-    
+
     check(1 <= schema_name.length() && schema_name.length() <= 12,
         "Schema names must be between 1 and 12 characters long");
 
@@ -385,7 +385,7 @@ ACTION atomicassets::extendschema(
 
     auto collection_itr = collections.require_find(collection_name.value,
         "No collection with this name exists");
-    
+
     check_has_collection_auth(
         authorized_editor,
         collection_name,
@@ -425,7 +425,7 @@ ACTION atomicassets::createtempl(
 
     auto collection_itr = collections.require_find(collection_name.value,
         "No collection with this name exists");
-    
+
     check_has_collection_auth(
         authorized_creator,
         collection_name,
@@ -484,21 +484,21 @@ ACTION atomicassets::locktemplate(
 
     auto collection_itr = collections.require_find(collection_name.value,
         "No collection with this name exists");
-    
+
     check_has_collection_auth(
         authorized_editor,
         collection_name,
         "The editor is not authorized within the collection"
     );
-    
+
     templates_t collection_templates = get_templates(collection_name);
     auto template_itr = collection_templates.require_find(template_id,
         "No template with the specified id exists for the specified colleciton");
-    
+
     check(template_itr->issued_supply != 0,
         "Can't lock a template that does not have at least one issued asset");
-    
-    collection_templates.modify(template_itr, same_payer, [&](auto& _template) {
+
+    collection_templates.modify(template_itr, same_payer, [&](auto &_template) {
         _template.max_supply = _template.issued_supply;
     });
 }
@@ -859,12 +859,12 @@ ACTION atomicassets::createoffer(
 
     check(memo.length() <= 256, "An offer memo can only be 256 characters max");
 
-    vector<uint64_t> sender_ids_copy = sender_asset_ids;
+    vector <uint64_t> sender_ids_copy = sender_asset_ids;
     std::sort(sender_ids_copy.begin(), sender_ids_copy.end());
     check(std::adjacent_find(sender_ids_copy.begin(), sender_ids_copy.end()) == sender_ids_copy.end(),
         "The assets in sender_asset_ids must be unique");
-    
-    vector<uint64_t> recipient_ids_copy = recipient_asset_ids;
+
+    vector <uint64_t> recipient_ids_copy = recipient_asset_ids;
     std::sort(recipient_ids_copy.begin(), recipient_ids_copy.end());
     check(std::adjacent_find(recipient_ids_copy.begin(), recipient_ids_copy.end()) == recipient_ids_copy.end(),
         "The assets in recipient_asset_ids must be unique");
@@ -1207,7 +1207,7 @@ void atomicassets::internal_transfer(
 
     check(memo.length() <= 256, "A transfer memo can only be 256 characters max");
 
-    vector<uint64_t> asset_ids_copy = asset_ids;
+    vector <uint64_t> asset_ids_copy = asset_ids;
     std::sort(asset_ids_copy.begin(), asset_ids_copy.end());
     check(std::adjacent_find(asset_ids_copy.begin(), asset_ids_copy.end()) == asset_ids_copy.end(),
         "Can't transfer the same asset multiple times");
@@ -1215,7 +1215,7 @@ void atomicassets::internal_transfer(
     assets_t from_assets = get_assets(from);
     assets_t to_assets = get_assets(to);
 
-    map <name, vector<uint64_t>> collection_to_assets_transferred = {};
+    map <name, vector <uint64_t>> collection_to_assets_transferred = {};
 
     for (uint64_t asset_id : asset_ids) {
         auto asset_itr = from_assets.require_find(asset_id,
@@ -1388,13 +1388,11 @@ void atomicassets::notify_collection_accounts(
 ) {
     auto collection_itr = collections.require_find(collection_name.value,
         "No collection with this name exists");
-    
+
     for (const name &notify_account : collection_itr->notify_accounts) {
         require_recipient(notify_account);
     }
 }
-
-
 
 
 /**
@@ -1427,8 +1425,8 @@ void atomicassets::check_name_length(
 ) {
     auto data_itr = data.find("name");
     if (data_itr != data.end()) {
-        if (std::holds_alternative<string>(data_itr->second)) {
-            check(std::get<string>(data_itr->second).length() <= 64,
+        if (std::holds_alternative <string>(data_itr->second)) {
+            check(std::get <string>(data_itr->second).length() <= 64,
                 "Names (attribute with name: \"name\") can only be 64 characters max");
         }
     }

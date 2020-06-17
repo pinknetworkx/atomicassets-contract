@@ -2,3 +2,5 @@
 *.wasm
 .eosproj
 .DS_STORE
+
+.idea

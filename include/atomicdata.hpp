@@ -23,7 +23,7 @@ namespace atomicdata {
     typedef std::vector <double> DOUBLE_VEC;
     typedef std::vector <std::string> STRING_VEC;
 
-    typedef std::variant< \
+    typedef std::variant <\
         int8_t, int16_t, int32_t, int64_t, \
         uint8_t, uint16_t, uint32_t, uint64_t, \
         float, double, std::string, \
@@ -31,7 +31,7 @@ namespace atomicdata {
         atomicdata::UINT8_VEC, atomicdata::UINT16_VEC, atomicdata::UINT32_VEC, atomicdata::UINT64_VEC, \
         atomicdata::FLOAT_VEC, atomicdata::DOUBLE_VEC, atomicdata::STRING_VEC
     > ATOMIC_ATTRIBUTE;
-    
+
     typedef std::map <std::string, ATOMIC_ATTRIBUTE> ATTRIBUTE_MAP;
 
     struct FORMAT {
@@ -62,7 +62,7 @@ namespace atomicdata {
         return bytes;
     }
 
-    uint64_t unsignedFromVarintBytes(vector<uint8_t>::iterator &itr) {
+    uint64_t unsignedFromVarintBytes(vector <uint8_t>::iterator &itr) {
         uint64_t number = 0;
         uint64_t multiplier = 1;
         while (true) {
@@ -80,7 +80,7 @@ namespace atomicdata {
         return number;
     }
 
-    int64_t signedFromVarintBytes(vector<uint8_t>::iterator &itr, uint64_t original_bytes = 8) {
+    int64_t signedFromVarintBytes(vector <uint8_t>::iterator &itr, uint64_t original_bytes = 8) {
         uint64_t number = unsignedFromVarintBytes(itr);
         if (original_bytes != 8 && number & (1 << (original_bytes * 8 - 1))) {
             //The number should be negative
@@ -102,7 +102,7 @@ namespace atomicdata {
         return bytes;
     }
 
-    uint64_t unsignedFromIntBytes(vector<uint8_t>::iterator &itr, uint64_t original_bytes = 8) {
+    uint64_t unsignedFromIntBytes(vector <uint8_t>::iterator &itr, uint64_t original_bytes = 8) {
         uint64_t number = 0;
         uint64_t multiplier = 1;
         for (uint64_t i = 0; i < original_bytes; i++) {
@@ -137,8 +137,8 @@ namespace atomicdata {
             //Type is an array
             string base_type = type.substr(0, type.length() - 2);
 
-            if (std::holds_alternative<INT8_VEC>(attr)) {
-                INT8_VEC vec = std::get<INT8_VEC>(attr);
+            if (std::holds_alternative <INT8_VEC>(attr)) {
+                INT8_VEC vec = std::get <INT8_VEC>(attr);
                 vector <uint8_t> serialized_data = toVarintBytes(vec.size());
                 for (auto child : vec) {
                     ATOMIC_ATTRIBUTE child_attr = child;
@@ -147,8 +147,8 @@ namespace atomicdata {
                 }
                 return serialized_data;
 
-            } else if (std::holds_alternative<INT16_VEC>(attr)) {
-                INT16_VEC vec = std::get<INT16_VEC>(attr);
+            } else if (std::holds_alternative <INT16_VEC>(attr)) {
+                INT16_VEC vec = std::get <INT16_VEC>(attr);
                 vector <uint8_t> serialized_data = toVarintBytes(vec.size());
                 for (auto child : vec) {
                     ATOMIC_ATTRIBUTE child_attr = child;
@@ -157,8 +157,8 @@ namespace atomicdata {
                 }
                 return serialized_data;
 
-            } else if (std::holds_alternative<INT32_VEC>(attr)) {
-                INT32_VEC vec = std::get<INT32_VEC>(attr);
+            } else if (std::holds_alternative <INT32_VEC>(attr)) {
+                INT32_VEC vec = std::get <INT32_VEC>(attr);
                 vector <uint8_t> serialized_data = toVarintBytes(vec.size());
                 for (auto child : vec) {
                     ATOMIC_ATTRIBUTE child_attr = child;
@@ -167,8 +167,8 @@ namespace atomicdata {
                 }
                 return serialized_data;
 
-            } else if (std::holds_alternative<INT64_VEC>(attr)) {
-                INT64_VEC vec = std::get<INT64_VEC>(attr);
+            } else if (std::holds_alternative <INT64_VEC>(attr)) {
+                INT64_VEC vec = std::get <INT64_VEC>(attr);
                 vector <uint8_t> serialized_data = toVarintBytes(vec.size());
                 for (auto child : vec) {
                     ATOMIC_ATTRIBUTE child_attr = child;
@@ -177,8 +177,8 @@ namespace atomicdata {
                 }
                 return serialized_data;
 
-            } else if (std::holds_alternative<UINT8_VEC>(attr)) {
-                UINT8_VEC vec = std::get<UINT8_VEC>(attr);
+            } else if (std::holds_alternative <UINT8_VEC>(attr)) {
+                UINT8_VEC vec = std::get <UINT8_VEC>(attr);
                 vector <uint8_t> serialized_data = toVarintBytes(vec.size());
                 for (auto child : vec) {
                     ATOMIC_ATTRIBUTE child_attr = child;
@@ -187,8 +187,8 @@ namespace atomicdata {
                 }
                 return serialized_data;
 
-            } else if (std::holds_alternative<UINT16_VEC>(attr)) {
-                UINT16_VEC vec = std::get<UINT16_VEC>(attr);
+            } else if (std::holds_alternative <UINT16_VEC>(attr)) {
+                UINT16_VEC vec = std::get <UINT16_VEC>(attr);
                 vector <uint8_t> serialized_data = toVarintBytes(vec.size());
                 for (auto child : vec) {
                     ATOMIC_ATTRIBUTE child_attr = child;
@@ -197,8 +197,8 @@ namespace atomicdata {
                 }
                 return serialized_data;
 
-            } else if (std::holds_alternative<UINT32_VEC>(attr)) {
-                UINT32_VEC vec = std::get<UINT32_VEC>(attr);
+            } else if (std::holds_alternative <UINT32_VEC>(attr)) {
+                UINT32_VEC vec = std::get <UINT32_VEC>(attr);
                 vector <uint8_t> serialized_data = toVarintBytes(vec.size());
                 for (auto child : vec) {
                     ATOMIC_ATTRIBUTE child_attr = child;
@@ -207,8 +207,8 @@ namespace atomicdata {
                 }
                 return serialized_data;
 
-            } else if (std::holds_alternative<UINT64_VEC>(attr)) {
-                UINT64_VEC vec = std::get<UINT64_VEC>(attr);
+            } else if (std::holds_alternative <UINT64_VEC>(attr)) {
+                UINT64_VEC vec = std::get <UINT64_VEC>(attr);
                 vector <uint8_t> serialized_data = toVarintBytes(vec.size());
                 for (auto child : vec) {
                     ATOMIC_ATTRIBUTE child_attr = child;
@@ -217,8 +217,8 @@ namespace atomicdata {
                 }
                 return serialized_data;
 
-            } else if (std::holds_alternative<FLOAT_VEC>(attr)) {
-                FLOAT_VEC vec = std::get<FLOAT_VEC>(attr);
+            } else if (std::holds_alternative <FLOAT_VEC>(attr)) {
+                FLOAT_VEC vec = std::get <FLOAT_VEC>(attr);
                 vector <uint8_t> serialized_data = toVarintBytes(vec.size());
                 for (auto child : vec) {
                     ATOMIC_ATTRIBUTE child_attr = child;
@@ -227,8 +227,8 @@ namespace atomicdata {
                 }
                 return serialized_data;
 
-            } else if (std::holds_alternative<DOUBLE_VEC>(attr)) {
-                DOUBLE_VEC vec = std::get<DOUBLE_VEC>(attr);
+            } else if (std::holds_alternative <DOUBLE_VEC>(attr)) {
+                DOUBLE_VEC vec = std::get <DOUBLE_VEC>(attr);
                 vector <uint8_t> serialized_data = toVarintBytes(vec.size());
                 for (auto child : vec) {
                     ATOMIC_ATTRIBUTE child_attr = child;
@@ -237,8 +237,8 @@ namespace atomicdata {
                 }
                 return serialized_data;
 
-            } else if (std::holds_alternative<STRING_VEC>(attr)) {
-                STRING_VEC vec = std::get<STRING_VEC>(attr);
+            } else if (std::holds_alternative <STRING_VEC>(attr)) {
+                STRING_VEC vec = std::get <STRING_VEC>(attr);
                 vector <uint8_t> serialized_data = toVarintBytes(vec.size());
                 for (auto child : vec) {
                     ATOMIC_ATTRIBUTE child_attr = child;
@@ -251,47 +251,47 @@ namespace atomicdata {
         }
 
         if (type == "int8") {
-            check(std::holds_alternative<int8_t>(attr), "Expected a int8, but some something else");
-            return toVarintBytes(zigzagEncode(std::get<int8_t>(attr)), 1);
+            check(std::holds_alternative <int8_t>(attr), "Expected a int8, but some something else");
+            return toVarintBytes(zigzagEncode(std::get <int8_t>(attr)), 1);
         } else if (type == "int16") {
-            check(std::holds_alternative<int16_t>(attr), "Expected a int16, but some something else");
-            return toVarintBytes(zigzagEncode(std::get<int16_t>(attr)), 2);
+            check(std::holds_alternative <int16_t>(attr), "Expected a int16, but some something else");
+            return toVarintBytes(zigzagEncode(std::get <int16_t>(attr)), 2);
         } else if (type == "int32") {
-            check(std::holds_alternative<int32_t>(attr), "Expected a int32, but some something else");
-            return toVarintBytes(zigzagEncode(std::get<int32_t>(attr)), 4);
+            check(std::holds_alternative <int32_t>(attr), "Expected a int32, but some something else");
+            return toVarintBytes(zigzagEncode(std::get <int32_t>(attr)), 4);
         } else if (type == "int64") {
-            check(std::holds_alternative<int64_t>(attr), "Expected a int64, but some something else");
-            return toVarintBytes(zigzagEncode(std::get<int64_t>(attr)), 8);
+            check(std::holds_alternative <int64_t>(attr), "Expected a int64, but some something else");
+            return toVarintBytes(zigzagEncode(std::get <int64_t>(attr)), 8);
 
         } else if (type == "uint8") {
-            check(std::holds_alternative<uint8_t>(attr), "Expected a uint8, but some something else");
-            return toVarintBytes(std::get<uint8_t>(attr), 1);
+            check(std::holds_alternative <uint8_t>(attr), "Expected a uint8, but some something else");
+            return toVarintBytes(std::get <uint8_t>(attr), 1);
         } else if (type == "uint16") {
-            check(std::holds_alternative<uint16_t>(attr), "Expected a uint16, but some something else");
-            return toVarintBytes(std::get<uint16_t>(attr), 2);
+            check(std::holds_alternative <uint16_t>(attr), "Expected a uint16, but some something else");
+            return toVarintBytes(std::get <uint16_t>(attr), 2);
         } else if (type == "uint32") {
-            check(std::holds_alternative<uint32_t>(attr), "Expected a uint32, but some something else");
-            return toVarintBytes(std::get<uint32_t>(attr), 4);
+            check(std::holds_alternative <uint32_t>(attr), "Expected a uint32, but some something else");
+            return toVarintBytes(std::get <uint32_t>(attr), 4);
         } else if (type == "uint64") {
-            check(std::holds_alternative<uint64_t>(attr), "Expected a uint64, but some something else");
-            return toVarintBytes(std::get<uint64_t>(attr), 8);
+            check(std::holds_alternative <uint64_t>(attr), "Expected a uint64, but some something else");
+            return toVarintBytes(std::get <uint64_t>(attr), 8);
 
         } else if (type == "fixed8") {
-            check(std::holds_alternative<uint8_t>(attr), "Expected a uint8 (fixed8), but some something else");
-            return toIntBytes(std::get<uint8_t>(attr), 1);
+            check(std::holds_alternative <uint8_t>(attr), "Expected a uint8 (fixed8), but some something else");
+            return toIntBytes(std::get <uint8_t>(attr), 1);
         } else if (type == "fixed16") {
-            check(std::holds_alternative<uint16_t>(attr), "Expected a uint16 (fixed16), but some something else");
-            return toIntBytes(std::get<uint16_t>(attr), 2);
+            check(std::holds_alternative <uint16_t>(attr), "Expected a uint16 (fixed16), but some something else");
+            return toIntBytes(std::get <uint16_t>(attr), 2);
         } else if (type == "fixed32") {
-            check(std::holds_alternative<uint32_t>(attr), "Expected a uint32 (fixed32), but some something else");
-            return toIntBytes(std::get<uint32_t>(attr), 4);
+            check(std::holds_alternative <uint32_t>(attr), "Expected a uint32 (fixed32), but some something else");
+            return toIntBytes(std::get <uint32_t>(attr), 4);
         } else if (type == "fixed64") {
-            check(std::holds_alternative<uint64_t>(attr), "Expected a uint64 (fixed64), but some something else");
-            return toIntBytes(std::get<uint64_t>(attr), 8);
+            check(std::holds_alternative <uint64_t>(attr), "Expected a uint64 (fixed64), but some something else");
+            return toIntBytes(std::get <uint64_t>(attr), 8);
 
         } else if (type == "float") {
-            check(std::holds_alternative<float>(attr), "Expected a float, but got something else");
-            float float_value = std::get<float>(attr);
+            check(std::holds_alternative <float>(attr), "Expected a float, but got something else");
+            float float_value = std::get <float>(attr);
             auto *byte_value = reinterpret_cast<uint8_t *>(&float_value);
             vector <uint8_t> serialized_data = {};
             serialized_data.reserve(4);
@@ -301,8 +301,8 @@ namespace atomicdata {
             return serialized_data;
 
         } else if (type == "double") {
-            check(std::holds_alternative<double>(attr), "Expected a double, but got something else");
-            double float_value = std::get<double>(attr);
+            check(std::holds_alternative <double>(attr), "Expected a double, but got something else");
+            double float_value = std::get <double>(attr);
             auto *byte_value = reinterpret_cast<uint8_t *>(&float_value);
             vector <uint8_t> serialized_data = {};
             serialized_data.reserve(8);
@@ -312,8 +312,8 @@ namespace atomicdata {
             return serialized_data;
 
         } else if (type == "string") {
-            check(std::holds_alternative<string>(attr), "Expected a string, but got something else");
-            string text = std::get<string>(attr);
+            check(std::holds_alternative <string>(attr), "Expected a string, but got something else");
+            string text = std::get <string>(attr);
             vector <uint8_t> serialized_data(text.begin(), text.end());
 
             vector <uint8_t> length_bytes = toVarintBytes(text.length());
@@ -321,18 +321,18 @@ namespace atomicdata {
             return serialized_data;
 
         } else if (type == "ipfs") {
-            check(std::holds_alternative<string>(attr), "Expected a string (ipfs), but got something else");
+            check(std::holds_alternative <string>(attr), "Expected a string (ipfs), but got something else");
             vector <uint8_t> result = {};
-            check(DecodeBase58(std::get<string>(attr), result),
+            check(DecodeBase58(std::get <string>(attr), result),
                 "Error when decoding IPFS string");
             vector <uint8_t> length_bytes = toVarintBytes(result.size());
             result.insert(result.begin(), length_bytes.begin(), length_bytes.end());
             return result;
 
         } else if (type == "bool") {
-            check(std::holds_alternative<uint8_t>(attr),
+            check(std::holds_alternative <uint8_t>(attr),
                 "Expected a bool (needs to be provided as uint8_t because of C++ restrictions), but got something else");
-            if (std::get<uint8_t>(attr)) {
+            if (std::get <uint8_t>(attr)) {
                 return {1};
             } else {
                 return {0};
@@ -349,7 +349,7 @@ namespace atomicdata {
     }
 
 
-    ATOMIC_ATTRIBUTE deserialize_attribute(const string &type, vector<uint8_t>::iterator &itr) {
+    ATOMIC_ATTRIBUTE deserialize_attribute(const string &type, vector <uint8_t>::iterator &itr) {
         if (type.find("[]", type.length() - 2) == type.length() - 2) {
             //Type is an array
             uint64_t array_length = unsignedFromVarintBytes(itr);
@@ -358,71 +358,71 @@ namespace atomicdata {
             if (type == "int8[]") {
                 INT8_VEC vec = {};
                 for (uint64_t i = 0; i < array_length; i++) {
-                    vec.push_back(std::get<int8_t>(deserialize_attribute(base_type, itr)));
+                    vec.push_back(std::get <int8_t>(deserialize_attribute(base_type, itr)));
                 }
                 return vec;
             } else if (type == "int16[]") {
                 INT16_VEC vec = {};
                 for (uint64_t i = 0; i < array_length; i++) {
-                    vec.push_back(std::get<int16_t>(deserialize_attribute(base_type, itr)));
+                    vec.push_back(std::get <int16_t>(deserialize_attribute(base_type, itr)));
                 }
                 return vec;
             } else if (type == "int32[]") {
                 INT32_VEC vec = {};
                 for (uint64_t i = 0; i < array_length; i++) {
-                    vec.push_back(std::get<int32_t>(deserialize_attribute(base_type, itr)));
+                    vec.push_back(std::get <int32_t>(deserialize_attribute(base_type, itr)));
                 }
                 return vec;
             } else if (type == "int64[]") {
                 INT64_VEC vec = {};
                 for (uint64_t i = 0; i < array_length; i++) {
-                    vec.push_back(std::get<int64_t>(deserialize_attribute(base_type, itr)));
+                    vec.push_back(std::get <int64_t>(deserialize_attribute(base_type, itr)));
                 }
                 return vec;
 
             } else if (type == "uint8[]" || type == "fixed8[]" || type == "bool[]") {
                 UINT8_VEC vec = {};
                 for (uint64_t i = 0; i < array_length; i++) {
-                    vec.push_back(std::get<uint8_t>(deserialize_attribute(base_type, itr)));
+                    vec.push_back(std::get <uint8_t>(deserialize_attribute(base_type, itr)));
                 }
                 return vec;
             } else if (type == "uint16[]" || type == "fixed16[]") {
                 UINT16_VEC vec = {};
                 for (uint64_t i = 0; i < array_length; i++) {
-                    vec.push_back(std::get<uint16_t>(deserialize_attribute(base_type, itr)));
+                    vec.push_back(std::get <uint16_t>(deserialize_attribute(base_type, itr)));
                 }
                 return vec;
             } else if (type == "uint32[]" || type == "fixed32[]") {
                 UINT32_VEC vec = {};
                 for (uint64_t i = 0; i < array_length; i++) {
-                    vec.push_back(std::get<uint32_t>(deserialize_attribute(base_type, itr)));
+                    vec.push_back(std::get <uint32_t>(deserialize_attribute(base_type, itr)));
                 }
                 return vec;
             } else if (type == "uint64[]" || type == "fixed64[]") {
                 UINT64_VEC vec = {};
                 for (uint64_t i = 0; i < array_length; i++) {
-                    vec.push_back(std::get<uint64_t>(deserialize_attribute(base_type, itr)));
+                    vec.push_back(std::get <uint64_t>(deserialize_attribute(base_type, itr)));
                 }
                 return vec;
 
             } else if (type == "float[]") {
                 FLOAT_VEC vec = {};
                 for (uint64_t i = 0; i < array_length; i++) {
-                    vec.push_back(std::get<float>(deserialize_attribute(base_type, itr)));
+                    vec.push_back(std::get <float>(deserialize_attribute(base_type, itr)));
                 }
                 return vec;
 
             } else if (type == "double[]") {
                 DOUBLE_VEC vec = {};
                 for (uint64_t i = 0; i < array_length; i++) {
-                    vec.push_back(std::get<double>(deserialize_attribute(base_type, itr)));
+                    vec.push_back(std::get <double>(deserialize_attribute(base_type, itr)));
                 }
                 return vec;
 
             } else if (type == "string[]") {
                 STRING_VEC vec = {};
                 for (uint64_t i = 0; i < array_length; i++) {
-                    vec.push_back(std::get<string>(deserialize_attribute(base_type, itr)));
+                    vec.push_back(std::get <string>(deserialize_attribute(base_type, itr)));
                 }
                 return vec;
 
