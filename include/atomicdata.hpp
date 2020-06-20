@@ -51,6 +51,7 @@ namespace atomicdata {
         vector <uint8_t> bytes = {};
         while (true) {
             if (number >= 128) {
+                // sets msb, stores remainder in lower bits
                 bytes.push_back((uint8_t)(128 + number % 128));
                 number /= 128;
             } else {
@@ -80,19 +81,7 @@ namespace atomicdata {
         return number;
     }
 
-    int64_t signedFromVarintBytes(vector <uint8_t>::iterator &itr, uint64_t original_bytes = 8) {
-        uint64_t number = unsignedFromVarintBytes(itr);
-        if (original_bytes != 8 && number & (1 << (original_bytes * 8 - 1))) {
-            //The number should be negative
-            uint64_t mask = 0 - ((uint64_t) 1 << original_bytes * 8);
-            number += mask;
-        }
-
-        return number;
-    }
-
-
-//It is expected that the number is smaller than 2^byte_amount
+    //It is expected that the number is smaller than 2^byte_amount
     vector <uint8_t> toIntBytes(uint64_t number, uint64_t byte_amount) {
         vector <uint8_t> bytes = {};
         for (uint64_t i = 0; i < byte_amount; i++) {
@@ -251,43 +240,43 @@ namespace atomicdata {
         }
 
         if (type == "int8") {
-            check(std::holds_alternative <int8_t>(attr), "Expected a int8, but some something else");
-            return toVarintBytes(zigzagEncode(std::get <int8_t>(attr)), 1);
+            check(std::holds_alternative<int8_t>(attr), "Expected a int8, but got something else");
+            return toVarintBytes(zigzagEncode(std::get<int8_t>(attr)), 1);
         } else if (type == "int16") {
-            check(std::holds_alternative <int16_t>(attr), "Expected a int16, but some something else");
-            return toVarintBytes(zigzagEncode(std::get <int16_t>(attr)), 2);
+            check(std::holds_alternative<int16_t>(attr), "Expected a int16, but got something else");
+            return toVarintBytes(zigzagEncode(std::get<int16_t>(attr)), 2);
         } else if (type == "int32") {
-            check(std::holds_alternative <int32_t>(attr), "Expected a int32, but some something else");
-            return toVarintBytes(zigzagEncode(std::get <int32_t>(attr)), 4);
+            check(std::holds_alternative<int32_t>(attr), "Expected a int32, but got something else");
+            return toVarintBytes(zigzagEncode(std::get<int32_t>(attr)), 4);
         } else if (type == "int64") {
-            check(std::holds_alternative <int64_t>(attr), "Expected a int64, but some something else");
-            return toVarintBytes(zigzagEncode(std::get <int64_t>(attr)), 8);
+            check(std::holds_alternative<int64_t>(attr), "Expected a int64, but got something else");
+            return toVarintBytes(zigzagEncode(std::get<int64_t>(attr)), 8);
 
         } else if (type == "uint8") {
-            check(std::holds_alternative <uint8_t>(attr), "Expected a uint8, but some something else");
-            return toVarintBytes(std::get <uint8_t>(attr), 1);
+            check(std::holds_alternative<uint8_t>(attr), "Expected a uint8, but got something else");
+            return toVarintBytes(std::get<uint8_t>(attr), 1);
         } else if (type == "uint16") {
-            check(std::holds_alternative <uint16_t>(attr), "Expected a uint16, but some something else");
-            return toVarintBytes(std::get <uint16_t>(attr), 2);
+            check(std::holds_alternative<uint16_t>(attr), "Expected a uint16, but got something else");
+            return toVarintBytes(std::get<uint16_t>(attr), 2);
         } else if (type == "uint32") {
-            check(std::holds_alternative <uint32_t>(attr), "Expected a uint32, but some something else");
-            return toVarintBytes(std::get <uint32_t>(attr), 4);
+            check(std::holds_alternative<uint32_t>(attr), "Expected a uint32, but got something else");
+            return toVarintBytes(std::get<uint32_t>(attr), 4);
         } else if (type == "uint64") {
-            check(std::holds_alternative <uint64_t>(attr), "Expected a uint64, but some something else");
-            return toVarintBytes(std::get <uint64_t>(attr), 8);
+            check(std::holds_alternative<uint64_t>(attr), "Expected a uint64, but got something else");
+            return toVarintBytes(std::get<uint64_t>(attr), 8);
 
         } else if (type == "fixed8") {
-            check(std::holds_alternative <uint8_t>(attr), "Expected a uint8 (fixed8), but some something else");
-            return toIntBytes(std::get <uint8_t>(attr), 1);
+            check(std::holds_alternative<uint8_t>(attr), "Expected a uint8 (fixed8), but got something else");
+            return toIntBytes(std::get<uint8_t>(attr), 1);
         } else if (type == "fixed16") {
-            check(std::holds_alternative <uint16_t>(attr), "Expected a uint16 (fixed16), but some something else");
-            return toIntBytes(std::get <uint16_t>(attr), 2);
+            check(std::holds_alternative<uint16_t>(attr), "Expected a uint16 (fixed16), but got something else");
+            return toIntBytes(std::get<uint16_t>(attr), 2);
         } else if (type == "fixed32") {
-            check(std::holds_alternative <uint32_t>(attr), "Expected a uint32 (fixed32), but some something else");
-            return toIntBytes(std::get <uint32_t>(attr), 4);
+            check(std::holds_alternative<uint32_t>(attr), "Expected a uint32 (fixed32), but got something else");
+            return toIntBytes(std::get<uint32_t>(attr), 4);
         } else if (type == "fixed64") {
-            check(std::holds_alternative <uint64_t>(attr), "Expected a uint64 (fixed64), but some something else");
-            return toIntBytes(std::get <uint64_t>(attr), 8);
+            check(std::holds_alternative<uint64_t>(attr), "Expected a uint64 (fixed64), but got something else");
+            return toIntBytes(std::get<uint64_t>(attr), 8);
 
         } else if (type == "float") {
             check(std::holds_alternative <float>(attr), "Expected a float, but got something else");
