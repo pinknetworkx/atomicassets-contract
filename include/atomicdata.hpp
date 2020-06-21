@@ -105,7 +105,7 @@ namespace atomicdata {
 
 
     uint64_t zigzagEncode(int64_t value) {
-        if (value <= 0) {
+        if (value < 0) {
             return (uint64_t)(-1 * (value + 1)) * 2 + 1;
         } else {
             return (uint64_t) value * 2;
