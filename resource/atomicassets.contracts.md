@@ -498,6 +498,8 @@ This action may only be called with the permission of {{authorized_minter}}.
 
 {{authorized_minter}} has to be an authorized account in the collection that the preset with the id {{preset_id}} belongs to.
 
+Minting assets that contain intellectual property requires the permission of the all rights holders of that intellectual property.
+
 Minting assets with the purpose of confusing or taking advantage of others, especially by impersonating other well known brands, personalities or dapps is not allowed.
 
 Minting assets with the purpose of spamming or otherwise negatively impacing {{new_owner}} is not allowed.
