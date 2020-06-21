@@ -115,6 +115,7 @@ namespace atomicassets {
         vector <uint64_t> sender_asset_ids;
         vector <uint64_t> recipient_asset_ids;
         string            memo;
+        name              ram_payer;
 
         uint64_t primary_key() const { return offer_id; };
 
