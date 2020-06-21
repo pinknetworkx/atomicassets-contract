@@ -437,7 +437,7 @@ ACTION atomicassets::createtempl(
         "No schema with this name exists");
 
     config_s current_config = config.get();
-    uint32_t template_id = current_config.template_counter++;
+    int32_t template_id = current_config.template_counter++;
     config.set(current_config, get_self());
 
     templates_t collection_templates = get_templates(collection_name);
@@ -478,9 +478,11 @@ ACTION atomicassets::createtempl(
 ACTION atomicassets::locktemplate(
     name authorized_editor,
     name collection_name,
-    uint32_t template_id
+    int32_t template_id
 ) {
     require_auth(authorized_editor);
+
+    check(template_id >= 0, "The template id must be positive");
 
     auto collection_itr = collections.require_find(collection_name.value,
         "No collection with this name exists");

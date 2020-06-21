@@ -107,7 +107,7 @@ public:
     ACTION locktemplate(
         name authorized_editor,
         name collection_name,
-        uint32_t template_id
+        int32_t template_id
     );
 
 
@@ -286,7 +286,7 @@ private:
 
     //Scope: collection_name
     TABLE templates_s {
-        uint32_t         template_id;
+        int32_t          template_id;
         name             schema_name;
         bool             transferable;
         bool             burnable;
@@ -294,7 +294,7 @@ private:
         uint32_t         issued_supply;
         vector <uint8_t> immutable_serialized_data;
 
-        uint64_t primary_key() const { return uint64_t{template_id}; }
+        uint64_t primary_key() const { return (uint64_t) template_id; }
     };
 
     typedef multi_index <name("templates"), templates_s> templates_t;

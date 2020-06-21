@@ -82,7 +82,7 @@ namespace atomicassets {
 
     //Scope: collection_name
     struct templates_s {
-        uint32_t         template_id;
+        int32_t          template_id;
         name             schema_name;
         bool             transferable;
         bool             burnable;
@@ -90,7 +90,7 @@ namespace atomicassets {
         uint32_t         issued_supply;
         vector <uint8_t> immutable_serialized_data;
 
-        uint64_t primary_key() const { return uint64_t{template_id}; }
+        uint64_t primary_key() const { return (uint64_t) template_id; }
     };
 
     typedef multi_index <name("templates"), templates_s> templates_t;
