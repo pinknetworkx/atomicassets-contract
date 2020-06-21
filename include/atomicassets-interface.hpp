@@ -144,7 +144,7 @@ namespace atomicassets {
 
 
     struct config_s {
-        uint64_t        asset_counter     = 1099511627780; //2^40
+        uint64_t        asset_counter     = 1099511627776; //2^40
         int32_t         template_counter  = 1;
         uint64_t        offer_counter     = 1;
         vector <FORMAT> collection_format = {};
