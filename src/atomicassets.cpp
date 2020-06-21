@@ -493,7 +493,7 @@ ACTION atomicassets::locktemplate(
 
     templates_t collection_templates = get_templates(collection_name);
     auto template_itr = collection_templates.require_find(template_id,
-        "No template with the specified id exists for the specified colleciton");
+        "No template with the specified id exists for the specified collection");
 
     check(template_itr->issued_supply != 0,
         "Can't lock a template that does not have at least one issued asset");
@@ -593,8 +593,10 @@ ACTION atomicassets::mintasset(
         )
     ).send();
 
-    //Calls the internal_back_asset function with handles asset backing.
+    //Calls the internal_back_asset function which handles asset backing.
     //It will throw if authorized_minter does not have a sufficient balance to pay for the backed tokens
+    //Token validity must not be cross-checked with config.supported_tokens because it's implicitly checked
+    //when decreasing minter's balance (only supported tokens can be deposited)
     for (asset &token : tokens_to_back) {
         internal_back_asset(authorized_minter, new_asset_owner, asset_id, token);
     }
@@ -773,7 +775,7 @@ ACTION atomicassets::burnasset(
 
     assets_t owner_assets = get_assets(asset_owner);
     auto asset_itr = owner_assets.require_find(asset_id,
-        "No asset with this id exists");
+        "No asset with this id exists for this owner");
 
     if (asset_itr->template_id >= 0) {
         templates_t collection_templates = get_templates(asset_itr->collection_name);
@@ -1231,7 +1233,7 @@ void atomicassets::internal_transfer(
                 ("At least one asset isn't transferable (ID: " + to_string(asset_id) + ")").c_str());
         }
 
-        //This is needed for sending noficiations later
+        //This is needed for sending notifications later
         if (collection_to_assets_transferred.find(asset_itr->collection_name) !=
             collection_to_assets_transferred.end()) {
             collection_to_assets_transferred[asset_itr->collection_name].push_back(asset_id);

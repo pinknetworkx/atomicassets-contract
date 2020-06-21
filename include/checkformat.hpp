@@ -10,7 +10,7 @@ using namespace atomicdata;
 /*
 This function checks if a vector of FORMAT structs, used to describe a format, is valid
 
-For a format to be vlaid, three things are checked:
+For a format to be valid, three things are checked:
 1. The type attribute has to be a valid type. Valid types are:
     int8/ int16/ int32/ int64
     uint8/ uint16/ uint32/ uint64
