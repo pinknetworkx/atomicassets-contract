@@ -908,6 +908,7 @@ ACTION atomicassets::createoffer(
         _offer.sender_asset_ids = sender_asset_ids;
         _offer.recipient_asset_ids = recipient_asset_ids;
         _offer.memo = memo;
+        _offer.ram_payer = sender;
     });
 
     config.set(current_config, get_self());
@@ -974,7 +975,7 @@ ACTION atomicassets::acceptoffer(
             offer_itr->sender,
             offer_itr->recipient_asset_ids,
             string("Accepted Offer ID: " + to_string(offer_id)),
-            offer_itr->sender
+            offer_itr->ram_payer
         );
     }
 
@@ -1025,7 +1026,7 @@ ACTION atomicassets::payofferram(
         "No offer with this id exists");
 
     offers.modify(offer_itr, payer, [&](auto &_offer) {
-
+        _offer.ram_payer = payer;
     });
 }
 
