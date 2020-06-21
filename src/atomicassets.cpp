@@ -54,15 +54,12 @@ ACTION atomicassets::addconftoken(name token_contract, symbol token_symbol) {
     require_auth(get_self());
 
     config_s current_config = config.get();
-    for (TOKEN token : current_config.supported_tokens) {
-        check(token.token_symbol != token_symbol,
+    for (extended_symbol token : current_config.supported_tokens) {
+        check(token.get_symbol() != token_symbol,
             "A token with this symbol is already supported");
     }
 
-    current_config.supported_tokens.push_back({
-        .token_contract = token_contract,
-        .token_symbol = token_symbol
-    });
+    current_config.supported_tokens.push_back(extended_symbol(token_symbol, token_contract));
 
     config.set(current_config, get_self());
 }
@@ -676,8 +673,8 @@ ACTION atomicassets::announcedepo(
     config_s current_config = config.get();
 
     bool is_supported = false;
-    for (TOKEN supported_token : current_config.supported_tokens) {
-        if (supported_token.token_symbol == symbol_to_announce) {
+    for (extended_symbol supported_token : current_config.supported_tokens) {
+        if (supported_token.get_symbol() == symbol_to_announce) {
             is_supported = true;
             break;
         }
@@ -726,11 +723,11 @@ ACTION atomicassets::withdraw(
 
     config_s current_config = config.get();
 
-    for (TOKEN supported_token : current_config.supported_tokens) {
-        if (supported_token.token_symbol == token_to_withdraw.symbol) {
+    for (extended_symbol supported_token : current_config.supported_tokens) {
+        if (supported_token.get_symbol() == token_to_withdraw.symbol) {
             action(
                 permission_level{get_self(), name("active")},
-                supported_token.token_contract,
+                supported_token.get_contract(),
                 name("transfer"),
                 make_tuple(
                     get_self(),
@@ -789,11 +786,11 @@ ACTION atomicassets::burnasset(
     config_s current_config = config.get();
 
     for (asset backed_quantity : asset_itr->backed_tokens) {
-        for (TOKEN supported_token : current_config.supported_tokens) {
-            if (supported_token.token_symbol == backed_quantity.symbol) {
+        for (extended_symbol supported_token : current_config.supported_tokens) {
+            if (supported_token.get_symbol() == backed_quantity.symbol) {
                 action(
                     permission_level{get_self(), name("active")},
-                    supported_token.token_contract,
+                    supported_token.get_contract(),
                     name("transfer"),
                     make_tuple(
                         get_self(),
@@ -1045,8 +1042,8 @@ void atomicassets::receive_token_transfer(name from, name to, asset quantity, st
     config_s current_config = config.get();
 
     bool is_supported = false;
-    for (TOKEN token : current_config.supported_tokens) {
-        if (token.token_contract == get_first_receiver() && token.token_symbol == quantity.symbol) {
+    for (extended_symbol token : current_config.supported_tokens) {
+        if (token.get_contract() == get_first_receiver() && token.get_symbol() == quantity.symbol) {
             is_supported = true;
         }
     }

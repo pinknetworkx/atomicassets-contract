@@ -49,11 +49,6 @@ namespace atomicassets {
         string type;
     };
 
-    struct TOKEN {
-        name   token_contract;
-        symbol token_symbol;
-    };
-
     struct collections_s {
         name             collection_name;
         name             author;
@@ -144,11 +139,11 @@ namespace atomicassets {
 
 
     struct config_s {
-        uint64_t        asset_counter     = 1099511627776; //2^40
-        int32_t         template_counter  = 1;
-        uint64_t        offer_counter     = 1;
-        vector <FORMAT> collection_format = {};
-        vector <TOKEN>  supported_tokens  = {};
+        uint64_t                 asset_counter     = 1099511627776; //2^40
+        int32_t                  template_counter  = 1;
+        uint64_t                 offer_counter     = 1;
+        vector <FORMAT>          collection_format = {};
+        vector <extended_symbol> supported_tokens  = {};
     };
     typedef singleton <name("config"), config_s>             config_t;
 
