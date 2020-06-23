@@ -1,5 +1,4 @@
-#ifndef ATOMICDATA_FILE_GUARD
-#define ATOMICDATA_FILE_GUARD
+#pragma once
 
 #include <eosio/eosio.hpp>
 #include "base58.hpp"
@@ -49,16 +48,12 @@ namespace atomicdata {
         }
 
         vector <uint8_t> bytes = {};
-        while (true) {
-            if (number >= 128) {
-                // sets msb, stores remainder in lower bits
-                bytes.push_back((uint8_t)(128 + number % 128));
-                number /= 128;
-            } else {
-                bytes.push_back((uint8_t) number);
-                break;
-            }
+        while (number >= 128) {
+            // sets msb, stores remainder in lower bits
+            bytes.push_back((uint8_t)(128 + number % 128));
+            number /= 128;
         }
+        bytes.push_back((uint8_t) number);
 
         return bytes;
     }
@@ -66,17 +61,14 @@ namespace atomicdata {
     uint64_t unsignedFromVarintBytes(vector <uint8_t>::iterator &itr) {
         uint64_t number = 0;
         uint64_t multiplier = 1;
-        while (true) {
-            if (*itr >= 128) {
-                number += (((uint64_t) * itr) - 128) * multiplier;
-                itr++;
-            } else {
-                number += ((uint64_t) * itr) * multiplier;
-                itr++;
-                break;
-            }
+
+        while (*itr >= 128) {
+            number += (((uint64_t) *itr) - 128) * multiplier;
+            itr++;
             multiplier *= 128;
         }
+        number += ((uint64_t) *itr) * multiplier;
+        itr++;
 
         return number;
     }
@@ -94,6 +86,7 @@ namespace atomicdata {
     uint64_t unsignedFromIntBytes(vector <uint8_t>::iterator &itr, uint64_t original_bytes = 8) {
         uint64_t number = 0;
         uint64_t multiplier = 1;
+
         for (uint64_t i = 0; i < original_bytes; i++) {
             number += ((uint64_t) * itr) * multiplier;
             multiplier *= 256;
@@ -265,7 +258,7 @@ namespace atomicdata {
             check(std::holds_alternative<uint64_t>(attr), "Expected a uint64, but got something else");
             return toVarintBytes(std::get<uint64_t>(attr), 8);
 
-        } else if (type == "fixed8") {
+        } else if (type == "fixed8" || type == "byte") {
             check(std::holds_alternative<uint8_t>(attr), "Expected a uint8 (fixed8), but got something else");
             return toIntBytes(std::get<uint8_t>(attr), 1);
         } else if (type == "fixed16") {
@@ -326,9 +319,6 @@ namespace atomicdata {
             } else {
                 return {0};
             }
-
-        } else if (type == "byte") {
-            return serialize_attribute("fixed8", attr);
 
         } else {
             check(false, "No type could be matched - " + type);
@@ -478,12 +468,7 @@ namespace atomicdata {
             itr += array_length;
             return EncodeBase58(byte_array);
 
-        } else if (type == "bool") {
-            uint8_t next_byte = *itr;
-            itr++;
-            return next_byte;
-
-        } else if (type == "byte") {
+        } else if (type == "bool" || type == "byte") {
             uint8_t next_byte = *itr;
             itr++;
             return next_byte;
@@ -496,16 +481,16 @@ namespace atomicdata {
     }
 
 
-    vector <uint8_t> serialize(ATTRIBUTE_MAP attr_map, vector <FORMAT> format_lines) {
+    vector <uint8_t> serialize(ATTRIBUTE_MAP attr_map, const vector <FORMAT> &format_lines) {
         uint64_t number = 0;
         vector <uint8_t> serialized_data = {};
         for (FORMAT line : format_lines) {
             auto attribute_itr = attr_map.find(line.name);
             if (attribute_itr != attr_map.end()) {
-                vector <uint8_t> identifier = toVarintBytes(number + RESERVED);
+                const vector <uint8_t> &identifier = toVarintBytes(number + RESERVED);
                 serialized_data.insert(serialized_data.end(), identifier.begin(), identifier.end());
 
-                vector <uint8_t> child_data = serialize_attribute(line.type, attribute_itr->second);
+                const vector <uint8_t> &child_data = serialize_attribute(line.type, attribute_itr->second);
                 serialized_data.insert(serialized_data.end(), child_data.begin(), child_data.end());
 
                 attr_map.erase(attribute_itr);
@@ -521,7 +506,7 @@ namespace atomicdata {
     }
 
 
-    ATTRIBUTE_MAP deserialize(vector <uint8_t> data, vector <FORMAT> format_lines) {
+    ATTRIBUTE_MAP deserialize(vector <uint8_t> data, const vector <FORMAT> &format_lines) {
         ATTRIBUTE_MAP attr_map = {};
 
         auto itr = data.begin();
@@ -534,5 +519,3 @@ namespace atomicdata {
         return attr_map;
     }
 }
-
-#endif
