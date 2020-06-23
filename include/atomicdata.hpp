@@ -58,7 +58,7 @@ namespace atomicdata {
         return bytes;
     }
 
-    uint64_t unsignedFromVarintBytes(vector <uint8_t>::iterator &itr) {
+    uint64_t unsignedFromVarintBytes(vector <const uint8_t>::iterator &itr) {
         uint64_t number = 0;
         uint64_t multiplier = 1;
 
@@ -83,7 +83,7 @@ namespace atomicdata {
         return bytes;
     }
 
-    uint64_t unsignedFromIntBytes(vector <uint8_t>::iterator &itr, uint64_t original_bytes = 8) {
+    uint64_t unsignedFromIntBytes(vector <const uint8_t>::iterator &itr, uint64_t original_bytes = 8) {
         uint64_t number = 0;
         uint64_t multiplier = 1;
 
@@ -328,7 +328,7 @@ namespace atomicdata {
     }
 
 
-    ATOMIC_ATTRIBUTE deserialize_attribute(const string &type, vector <uint8_t>::iterator &itr) {
+    ATOMIC_ATTRIBUTE deserialize_attribute(const string &type, vector <const uint8_t>::iterator &itr) {
         if (type.find("[]", type.length() - 2) == type.length() - 2) {
             //Type is an array
             uint64_t array_length = unsignedFromVarintBytes(itr);
@@ -506,7 +506,7 @@ namespace atomicdata {
     }
 
 
-    ATTRIBUTE_MAP deserialize(vector <uint8_t> data, const vector <FORMAT> &format_lines) {
+    ATTRIBUTE_MAP deserialize(const vector <uint8_t> &data, const vector <FORMAT> &format_lines) {
         ATTRIBUTE_MAP attr_map = {};
 
         auto itr = data.begin();
