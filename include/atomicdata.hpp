@@ -259,7 +259,7 @@ namespace atomicdata {
             return toVarintBytes(std::get<uint64_t>(attr), 8);
 
         } else if (type == "fixed8" || type == "byte") {
-            check(std::holds_alternative<uint8_t>(attr), "Expected a uint8 (fixed8), but got something else");
+            check(std::holds_alternative<uint8_t>(attr), "Expected a uint8 (fixed8 / byte), but got something else");
             return toIntBytes(std::get<uint8_t>(attr), 1);
         } else if (type == "fixed16") {
             check(std::holds_alternative<uint16_t>(attr), "Expected a uint16 (fixed16), but got something else");
@@ -314,11 +314,10 @@ namespace atomicdata {
         } else if (type == "bool") {
             check(std::holds_alternative <uint8_t>(attr),
                 "Expected a bool (needs to be provided as uint8_t because of C++ restrictions), but got something else");
-            if (std::get <uint8_t>(attr)) {
-                return {1};
-            } else {
-                return {0};
-            }
+            uint8_t value = std::get <uint8_t>(attr);
+            check(value == 0 || value == 1,
+                "Bools need to be provided as an uin8_t that is either 0 or 1");
+            return {value};
 
         } else {
             check(false, "No type could be matched - " + type);
