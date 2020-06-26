@@ -205,8 +205,8 @@ public:
     ACTION lognewtempl(
         int32_t template_id,
         name authorized_creator,
-        name schema_name,
         name collection_name,
+        name schema_name,
         bool transferable,
         bool burnable,
         uint32_t max_supply,
