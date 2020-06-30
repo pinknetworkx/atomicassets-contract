@@ -22,14 +22,13 @@ namespace atomicdata {
     typedef std::vector <double> DOUBLE_VEC;
     typedef std::vector <std::string> STRING_VEC;
 
-    typedef std::variant <\
+#define ATOMIC_ATTRIBUTE std::variant <\
         int8_t, int16_t, int32_t, int64_t, \
         uint8_t, uint16_t, uint32_t, uint64_t, \
         float, double, std::string, \
         atomicdata::INT8_VEC, atomicdata::INT16_VEC, atomicdata::INT32_VEC, atomicdata::INT64_VEC, \
         atomicdata::UINT8_VEC, atomicdata::UINT16_VEC, atomicdata::UINT32_VEC, atomicdata::UINT64_VEC, \
-        atomicdata::FLOAT_VEC, atomicdata::DOUBLE_VEC, atomicdata::STRING_VEC
-    > ATOMIC_ATTRIBUTE;
+        atomicdata::FLOAT_VEC, atomicdata::DOUBLE_VEC, atomicdata::STRING_VEC>
 
     typedef std::map <std::string, ATOMIC_ATTRIBUTE> ATTRIBUTE_MAP;
 
