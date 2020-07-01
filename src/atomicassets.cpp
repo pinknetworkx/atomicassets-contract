@@ -693,8 +693,10 @@ ACTION atomicassets::announcedepo(
     } else {
         vector <asset> quantities = balance_itr->quantities;
         for (asset &token : quantities) {
-            check(token.symbol != symbol_to_announce,
-                "The specified symbol has already been announced");
+            if (token.symbol == symbol_to_announce) {
+                //The symbol has already been announced
+                return;
+            }
         }
         quantities.push_back(asset(0, symbol_to_announce));
 
