@@ -292,7 +292,7 @@ namespace atomicdata {
             }
             return serialized_data;
 
-        } else if (type == "string") {
+        } else if (type == "string" || type == "image") {
             check(std::holds_alternative <string>(attr), "Expected a string, but got something else");
             string text = std::get <string>(attr);
             vector <uint8_t> serialized_data(text.begin(), text.end());
@@ -396,7 +396,7 @@ namespace atomicdata {
                 }
                 return vec;
 
-            } else if (type == "string[]") {
+            } else if (type == "string[]" || type == "image[]") {
                 STRING_VEC vec = {};
                 for (uint64_t i = 0; i < array_length; i++) {
                     vec.push_back(std::get <string>(deserialize_attribute(base_type, itr)));
@@ -451,7 +451,7 @@ namespace atomicdata {
             auto *val = reinterpret_cast<double *>(&array_repr);
             return *val;
 
-        } else if (type == "string") {
+        } else if (type == "string" || type == "image") {
             uint64_t string_length = unsignedFromVarintBytes(itr);
             string text(itr, itr + string_length);
 

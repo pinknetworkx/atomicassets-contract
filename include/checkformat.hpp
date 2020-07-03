@@ -12,10 +12,10 @@ This function checks if a vector of FORMAT structs, used to describe a format, i
 
 For a format to be valid, three things are checked:
 1. The type attribute has to be a valid type. Valid types are:
-    int8/ int16/ int32/ int64
-    uint8/ uint16/ uint32/ uint64
-    fixed8/ fixed16/ fixed32/ fixed64
-    float/ double/ string/ ipfs/ bool/ byte
+    int8 / int16 / int32 / int64
+    uint8 / uint16 / uint32 / uint64
+    fixed8 / fixed16 / fixed32 / fixed64
+    float / double / string / image / ipfs / bool / byte
 
     or any valid type followed by [] to describe a vector
     nested vectors (e.g. uint64[][]) are not allowed
@@ -71,7 +71,8 @@ void check_format(vector <FORMAT> lines) {
         } else {
             if (type.find("bool", offset) == offset || type.find("ipfs", offset) == offset) {
                 offset += 4;
-            } else if (type.find("bytes", offset) == offset || type.find("float", offset) == offset) {
+            } else if (type.find("bytes", offset) == offset || type.find("float", offset) == offset ||
+                type.find("image", offset) == offset) {
                 offset += 5;
             } else if (type.find("string", offset) == offset || type.find("double", offset) == offset) {
                 offset += 6;
