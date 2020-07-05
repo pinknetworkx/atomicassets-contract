@@ -10,6 +10,7 @@ and custom data types.
 #include <eosio/eosio.hpp>
 #include <eosio/singleton.hpp>
 #include <eosio/asset.hpp>
+#include <atomicdata.hpp>
 
 using namespace eosio;
 using namespace std;
@@ -33,21 +34,7 @@ namespace atomicassets {
     typedef std::vector <double>      DOUBLE_VEC;
     typedef std::vector <std::string> STRING_VEC;
 
-    typedef std::variant <\
-        int8_t, int16_t, int32_t, int64_t, \
-        uint8_t, uint16_t, uint32_t, uint64_t, \
-        float, double, std::string, \
-        INT8_VEC, INT16_VEC, INT32_VEC, INT64_VEC, \
-        UINT8_VEC, UINT16_VEC, UINT32_VEC, UINT64_VEC, \
-        FLOAT_VEC, DOUBLE_VEC, STRING_VEC
-    > ATOMIC_ATTRIBUTE;
-
     typedef std::map <std::string, ATOMIC_ATTRIBUTE> ATTRIBUTE_MAP;
-
-    struct FORMAT {
-        string name;
-        string type;
-    };
 
     struct collections_s {
         name             collection_name;
@@ -66,8 +53,8 @@ namespace atomicassets {
 
     //Scope: collection_name
     struct schemas_s {
-        name            schema_name;
-        vector <FORMAT> format;
+        name                        schema_name;
+        vector <atomicdata::FORMAT> format;
 
         uint64_t primary_key() const { return schema_name.value; }
     };
@@ -138,15 +125,14 @@ namespace atomicassets {
 
     typedef multi_index <name("balances"), balances_s>       balances_t;
 
-
     struct config_s {
-        uint64_t                 asset_counter     = 1099511627776; //2^40
-        int32_t                  template_counter  = 1;
-        uint64_t                 offer_counter     = 1;
-        vector <FORMAT>          collection_format = {};
-        vector <extended_symbol> supported_tokens  = {};
+        uint64_t                   asset_counter     = 1099511627776; // 2^40
+        int32_t                    template_counter  = 1;
+        uint64_t                   offer_counter     = 1;
+        vector<atomicdata::FORMAT> collection_format = {};
+        vector<extended_symbol>    supported_tokens  = {};
     };
-    typedef singleton <name("config"), config_s>             config_t;
+    typedef singleton <name("config"), config_s>       config_t;
 
     struct tokenconfigs_s {
         name        standard = name("atomicassets");
