@@ -222,7 +222,8 @@ public:
         name new_asset_owner,
         ATTRIBUTE_MAP immutable_data,
         ATTRIBUTE_MAP mutable_data,
-        vector <asset> backed_tokens
+        vector <asset> backed_tokens,
+        ATTRIBUTE_MAP immutable_template_data
     );
 
     ACTION logsetdata(
@@ -356,7 +357,7 @@ private:
 
     TABLE tokenconfigs_s {
         name        standard = name("atomicassets");
-        std::string version  = string("1.1.0");
+        std::string version  = string("1.2.0");
     };
     typedef singleton <name("tokenconfigs"), tokenconfigs_s>   tokenconfigs_t;
     // https://github.com/EOSIO/eosio.cdt/issues/280

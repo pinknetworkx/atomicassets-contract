@@ -529,6 +529,12 @@ ACTION atomicassets::mintasset(
         "The minter is not authorized within the collection"
     );
 
+    schemas_t collection_schemas = get_schemas(collection_name);
+    auto schema_itr = collection_schemas.require_find(schema_name.value,
+        "No schema with this name exists");
+
+    //Needed for the log action
+    ATTRIBUTE_MAP deserialized_template_data;
     if (template_id >= 0) {
         templates_t collection_templates = get_templates(collection_name);
 
@@ -545,13 +551,16 @@ ACTION atomicassets::mintasset(
         collection_templates.modify(template_itr, same_payer, [&](auto &_template) {
             _template.issued_supply += 1;
         });
+
+        deserialized_template_data = deserialize(
+            template_itr->immutable_serialized_data,
+            schema_itr->format
+        );
     } else {
         check(template_id == -1, "The template id must either be an existing template or -1");
-    }
 
-    schemas_t collection_schemas = get_schemas(collection_name);
-    auto schema_itr = collection_schemas.require_find(schema_name.value,
-        "No schema with this name exists");
+        deserialized_template_data = {};
+    }
 
     check(is_account(new_asset_owner), "The new_asset_owner account does not exist");
 
@@ -588,7 +597,8 @@ ACTION atomicassets::mintasset(
             new_asset_owner,
             immutable_data,
             mutable_data,
-            tokens_to_back
+            tokens_to_back,
+            deserialized_template_data
         )
     ).send();
 
@@ -1130,7 +1140,8 @@ ACTION atomicassets::logmint(
     name new_asset_owner,
     ATTRIBUTE_MAP immutable_data,
     ATTRIBUTE_MAP mutable_data,
-    vector <asset> backed_tokens
+    vector <asset> backed_tokens,
+    ATTRIBUTE_MAP immutable_template_data
 ) {
     require_auth(get_self());
 
