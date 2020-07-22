@@ -24,14 +24,14 @@ This action may only be called with the permission of {{$action.account}}.
 
 ---
 spec_version: "0.2.0"
-title: Extend collections scheme
-summary: 'Extends the scheme to serialize collection data by one or more lines'
+title: Extend collections schema
+summary: 'Extends the schema to serialize collection data by one or more lines'
 icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CFBABF46534F48345BF6453090554C52D5
 ---
 
 <b>Description:</b>
 <div class="description">
-The following FORMAT lines are added to the scheme that is used to serialize collections data:
+The following FORMAT lines are added to the schema that is used to serialize collections data:
 {{#each collection_format_extension}}
     - name: {{this.name}} , type: {{this.type}}
 {{/each}}
@@ -123,27 +123,27 @@ Transfers that do not serve any purpose other than spamming the recipient are no
 
 
 
-<h1 class="contract">createscheme</h1>
+<h1 class="contract">createschema</h1>
 
 ---
 spec_version: "0.2.0"
-title: Create a scheme
-summary: '{{nowrap authorized_creator}} creates a new scheme with the name {{nowrap scheme_name}}'
+title: Create a schema
+summary: '{{nowrap authorized_creator}} creates a new schema with the name {{nowrap schema_name}}'
 icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CFBABF46534F48345BF6453090554C52D5
 ---
 
 <b>Description:</b>
 <div class="description">
-{{authorized_creator}} creates a new scheme with the name {{scheme_name}}. This scheme belongs to the collection {{collection_name}}
+{{authorized_creator}} creates a new schema with the name {{schema_name}}. This schema belongs to the collection {{collection_name}}
 
-{{#if scheme_format}}The scheme will be initialized with the following FORMAT lines that can be used to serialize preset and asset data:
-    {{#each scheme_format}}
+{{#if schema_format}}The schema will be initialized with the following FORMAT lines that can be used to serialize template and asset data:
+    {{#each schema_format}}
         - name: {{this.name}} , type: {{this.type}}
     {{/each}}
-{{else}}The scheme will be initialized without any FORMAT lines.
+{{else}}The schema will be initialized without any FORMAT lines.
 {{/if}}
 
-Only authorized accounts of the {{collection_name}} collection will be able to extend the scheme by adding additional FORMAT lines in the future, but they will not be able to delete previously added FORMAT lines.
+Only authorized accounts of the {{collection_name}} collection will be able to extend the schema by adding additional FORMAT lines in the future, but they will not be able to delete previously added FORMAT lines.
 </div>
 
 <b>Clauses:</b>
@@ -152,25 +152,25 @@ This action may only be called with the permission of {{authorized_creator}}.
 
 {{authorized_creator}} has to be an authorized account in the collection {{collection_name}}.
 
-Creating schemes with the purpose of confusing or taking advantage of others, especially by impersonating other well known brands, personalities or dapps is not allowed.
+Creating schemas with the purpose of confusing or taking advantage of others, especially by impersonating other well known brands, personalities or dapps is not allowed.
 </div>
 
 
 
 
-<h1 class="contract">extendscheme</h1>
+<h1 class="contract">extendschema</h1>
 
 ---
 spec_version: "0.2.0"
-title: Extend scheme
-summary: 'Extends the scheme {{nowrap scheme_name}} by adding one or more FORMAT lines'
+title: Extend schema
+summary: 'Extends the schema {{nowrap schema_name}} by adding one or more FORMAT lines'
 icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CFBABF46534F48345BF6453090554C52D5
 ---
 
 <b>Description:</b>
 <div class="description">
-The scheme {{scheme_name}} belonging to the collection {{collection_name}} is extended by adding the following FORMAT lines that can be used to serialize preset and asset data:
-{{#each scheme_format_extension}}
+The schema {{schema_name}} belonging to the collection {{collection_name}} is extended by adding the following FORMAT lines that can be used to serialize template and asset data:
+{{#each schema_format_extension}}
     - name: {{this.name}} , type: {{this.type}}
 {{/each}}
 </div>
@@ -198,14 +198,14 @@ icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CF
 <div class="description">
 {{author}} creates a new collection with the name {{collection_name}}.
 
-{{#if authorized_accounts}}The following accounts are added to the authorized_accounts list, allowing them create and edit presets and assets within this collection:
+{{#if authorized_accounts}}The following accounts are added to the authorized_accounts list, allowing them create and edit templates and assets within this collection:
     {{#each authorized_accounts}}
         - {{this}}
     {{/each}}
 {{else}}No accounts are added to the authorized_accounts list.
 {{/if}}
 
-{{#if notify_accounts}}The following accounts are added to the notify_accounts list, which means that they get notified on the blockchain of any actions related to assets and presets of this collection:
+{{#if notify_accounts}}The following accounts are added to the notify_accounts list, which means that they get notified on the blockchain of any actions related to assets and templates of this collection:
     {{#each notify_accounts}}
         - {{this}}
     {{/each}}
@@ -231,6 +231,10 @@ The market_fee for this collection will be set to {{market_fee}}. 3rd party mark
 This action may only be called with the permission of {{author}}.
 
 Creating collections with the purpose of confusing or taking advantage of others, especially by impersonating other well known brands, personalities or dapps is not allowed.
+
+If the notify functionality is being used, the notify accounts may not make any transactions throw when receiving the notification. This includes, but is not limited to, purposely blocking certain transfers by making the transaction throw.
+
+It is the collection author's responsibility to enforce that this does not happen.
 </div>
 
 
@@ -276,7 +280,7 @@ icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CF
 <div class="description">
 Adds the account {{account_to_add}} to the authorized_accounts list of the collection {{collection_name}}.
 
-This allows {{account_to_add}} to both create and edit presets and assets of this collection.
+This allows {{account_to_add}} to both create and edit templates and assets of this collection.
 </div>
 
 <b>Clauses:</b>
@@ -300,7 +304,7 @@ icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CF
 <div class="description">
 Removes the account {{account_to_remove}} from the authorized_accounts list of the collection {{collection_name}}.
 
-This removes {{account_to_remove}}'s permission to both create and edit presets and assets of this collection.
+This removes {{account_to_remove}}'s permission to both create and edit templates and assets of this collection.
 </div>
 
 <b>Clauses:</b>
@@ -330,8 +334,7 @@ This will make {{account_to_add}} get notifications directly on the blockchain w
 - An asset of the collection {{collection_name}} has its mutable data changed
 - An asset of the collection {{collection_name}} is burned
 - An asset of the collection {{collection_name}} gets backed with core tokens
-- A preset of the collection {{collection_name}} is created
-- A preset of the collection {{collection_name}} has its mutable data changed
+- A template of the collection {{collection_name}} is created
 
 {{account_to_add}} is able to add code to their own smart contract to handle these notifications. 
 </div>
@@ -339,6 +342,10 @@ This will make {{account_to_add}} get notifications directly on the blockchain w
 <b>Clauses:</b>
 <div class="clauses">
 This action may only be called with the permission of the collection's author.
+
+{{account_to_add}} may not make any transactions throw when receiving a notification. This includes, but is not limited to, purposely blocking certain transfers by making the transaction throw.
+
+It is the collection author's responsibility to enforce that this does not happen.
 </div>
 
 
@@ -413,38 +420,38 @@ This action may only be called with the permission of the collection's author.
 
 
 
-<h1 class="contract">createpreset</h1>
+<h1 class="contract">createtempl</h1>
 
 ---
 spec_version: "0.2.0"
-title: Create a preset
-summary: '{{nowrap authorized_creator}} creates a new preset which belongs to the {{nowrap collection_name}} collection and uses the {{nowrap scheme_name}} scheme'
+title: Create a template
+summary: '{{nowrap authorized_creator}} creates a new template which belongs to the {{nowrap collection_name}} collection and uses the {{nowrap schema_name}} schema'
 icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CFBABF46534F48345BF6453090554C52D5
 ---
 
 <b>Description:</b>
 <div class="description">
-{{authorized_creator}} creates a new preset which belongs to the {{collection_name}} collection.
+{{authorized_creator}} creates a new template which belongs to the {{collection_name}} collection.
 
-The scheme {{scheme_name}} is used for the serialization of the preset's data.
+The schema {{schema_name}} is used for the serialization of the template's data.
 
-{{#if transferable}}The assets within this preset will be transferable
-{{else}}The assets within this preset will not be transferable
+{{#if transferable}}The assets within this template will be transferable
+{{else}}The assets within this template will not be transferable
 {{/if}}
 
-{{#if burnable}}The assets within this preset will be burnable
-{{else}}The assets within this preset will not be burnable
+{{#if burnable}}The assets within this template will be burnable
+{{else}}The assets within this template will not be burnable
 {{/if}}
 
-{{#if max_supply}}A maximum of {{max_supply}} assets can ever be created within this preset.
-{{else}}There is no maximum amount of assets that can be created within this preset.
+{{#if max_supply}}A maximum of {{max_supply}} assets can ever be created within this template.
+{{else}}There is no maximum amount of assets that can be created within this template.
 {{/if}}
 
-{{#if immutable_data}}The immutable data of the preset is set to:
+{{#if immutable_data}}The immutable data of the template is set to:
     {{#each immutable_data}}
         - name: {{this.key}} , value: {{this.value}}
     {{/each}}
-{{else}}No immutable data is set for the preset.
+{{else}}No immutable data is set for the template.
 {{/if}}
 </div>
 
@@ -453,6 +460,34 @@ The scheme {{scheme_name}} is used for the serialization of the preset's data.
 This action may only be called with the permission of {{authorized_creator}}.
 
 {{authorized_creator}} has to be an authorized account in the collection {{collection_name}}.
+</div>
+
+
+
+
+<h1 class="contract">locktemplate</h1>
+
+---
+spec_version: "0.2.0"
+title: Locks a template
+summary: '{{nowrap authorized_editor}} locks the template with the id {{nowrap template_id}} belonging to the collection {{nowrap collection_name}}'
+icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CFBABF46534F48345BF6453090554C52D5
+---
+
+<b>Description:</b>
+<div class="description">
+{{authorized_editor}} locks the template with the id {{template_id}} belonging to the collection {{collection_name}}.
+
+This sets the template's maximum supply to the template's current supply, which means that no more assets referencing this template can be minted.
+</div>
+
+<b>Clauses:</b>
+<div class="clauses">
+This action may only be called with the permission of {{authorized_creator}}.
+
+{{authorized_creator}} has to be an authorized account in the collection {{collection_name}}.
+
+The template's issued supply must be greater than 0.
 </div>
 
 
@@ -469,7 +504,7 @@ icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CF
 
 <b>Description:</b>
 <div class="description">
-{{authorized_minter}} mints an asset of the preset which belongs to the {{scheme_name}} scheme of the {{collection_name}} collection. The asset will be owned by {{new_asset_owner}}.
+{{authorized_minter}} mints an asset of the template which belongs to the {{schema_name}} schema of the {{collection_name}} collection. The asset will be owned by {{new_asset_owner}}.
 
 {{#if immutable_data}}The immutable data of the asset is set to:
     {{#each immutable_data}}
@@ -496,7 +531,7 @@ icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CF
 <div class="clauses">
 This action may only be called with the permission of {{authorized_minter}}.
 
-{{authorized_minter}} has to be an authorized account in the collection that the preset with the id {{preset_id}} belongs to.
+{{authorized_minter}} has to be an authorized account in the collection that the template with the id {{template_id}} belongs to.
 
 Minting assets that contain intellectual property requires the permission of the all rights holders of that intellectual property.
 
@@ -531,7 +566,7 @@ icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CF
 <div class="clauses">
 This action may only be called with the permission of {{authorized_editor}}.
 
-{{authorized_editor}} has to be an authorized account in the collection that the asset with the id {{asset_id}} belongs to. (An asset belongs to the collection that the preset it is within belongs to)
+{{authorized_editor}} has to be an authorized account in the collection that the asset with the id {{asset_id}} belongs to. (An asset belongs to the collection that the template it is within belongs to)
 </div>
 
 
