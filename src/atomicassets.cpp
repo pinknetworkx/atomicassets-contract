@@ -1035,8 +1035,13 @@ ACTION atomicassets::payofferram(
 
     auto offer_itr = offers.require_find(offer_id,
         "No offer with this id exists");
+    
+    offers_s offer_copy = *offer_itr;
 
-    offers.modify(offer_itr, payer, [&](auto &_offer) {
+    offers.erase(offer_itr);
+
+    offers.emplace(payer, [&](auto &_offer) {
+        _offer = offer_copy;
         _offer.ram_payer = payer;
     });
 }
