@@ -22,13 +22,13 @@ namespace atomicdata {
     typedef std::vector <double> DOUBLE_VEC;
     typedef std::vector <std::string> STRING_VEC;
 
-#define ATOMIC_ATTRIBUTE std::variant <\
+    typedef std::variant <\
         int8_t, int16_t, int32_t, int64_t, \
         uint8_t, uint16_t, uint32_t, uint64_t, \
         float, double, std::string, \
         atomicdata::INT8_VEC, atomicdata::INT16_VEC, atomicdata::INT32_VEC, atomicdata::INT64_VEC, \
         atomicdata::UINT8_VEC, atomicdata::UINT16_VEC, atomicdata::UINT32_VEC, atomicdata::UINT64_VEC, \
-        atomicdata::FLOAT_VEC, atomicdata::DOUBLE_VEC, atomicdata::STRING_VEC>
+        atomicdata::FLOAT_VEC, atomicdata::DOUBLE_VEC, atomicdata::STRING_VEC> ATOMIC_ATTRIBUTE;
 
     typedef std::map <std::string, ATOMIC_ATTRIBUTE> ATTRIBUTE_MAP;
 
@@ -62,11 +62,11 @@ namespace atomicdata {
         uint64_t multiplier = 1;
 
         while (*itr >= 128) {
-            number += (((uint64_t) *itr) - 128) * multiplier;
+            number += (((uint64_t) * itr) - 128) * multiplier;
             itr++;
             multiplier *= 128;
         }
-        number += ((uint64_t) *itr) * multiplier;
+        number += ((uint64_t) * itr) * multiplier;
         itr++;
 
         return number;
@@ -232,43 +232,43 @@ namespace atomicdata {
         }
 
         if (type == "int8") {
-            check(std::holds_alternative<int8_t>(attr), "Expected a int8, but got something else");
-            return toVarintBytes(zigzagEncode(std::get<int8_t>(attr)), 1);
+            check(std::holds_alternative <int8_t>(attr), "Expected a int8, but got something else");
+            return toVarintBytes(zigzagEncode(std::get <int8_t>(attr)), 1);
         } else if (type == "int16") {
-            check(std::holds_alternative<int16_t>(attr), "Expected a int16, but got something else");
-            return toVarintBytes(zigzagEncode(std::get<int16_t>(attr)), 2);
+            check(std::holds_alternative <int16_t>(attr), "Expected a int16, but got something else");
+            return toVarintBytes(zigzagEncode(std::get <int16_t>(attr)), 2);
         } else if (type == "int32") {
-            check(std::holds_alternative<int32_t>(attr), "Expected a int32, but got something else");
-            return toVarintBytes(zigzagEncode(std::get<int32_t>(attr)), 4);
+            check(std::holds_alternative <int32_t>(attr), "Expected a int32, but got something else");
+            return toVarintBytes(zigzagEncode(std::get <int32_t>(attr)), 4);
         } else if (type == "int64") {
-            check(std::holds_alternative<int64_t>(attr), "Expected a int64, but got something else");
-            return toVarintBytes(zigzagEncode(std::get<int64_t>(attr)), 8);
+            check(std::holds_alternative <int64_t>(attr), "Expected a int64, but got something else");
+            return toVarintBytes(zigzagEncode(std::get <int64_t>(attr)), 8);
 
         } else if (type == "uint8") {
-            check(std::holds_alternative<uint8_t>(attr), "Expected a uint8, but got something else");
-            return toVarintBytes(std::get<uint8_t>(attr), 1);
+            check(std::holds_alternative <uint8_t>(attr), "Expected a uint8, but got something else");
+            return toVarintBytes(std::get <uint8_t>(attr), 1);
         } else if (type == "uint16") {
-            check(std::holds_alternative<uint16_t>(attr), "Expected a uint16, but got something else");
-            return toVarintBytes(std::get<uint16_t>(attr), 2);
+            check(std::holds_alternative <uint16_t>(attr), "Expected a uint16, but got something else");
+            return toVarintBytes(std::get <uint16_t>(attr), 2);
         } else if (type == "uint32") {
-            check(std::holds_alternative<uint32_t>(attr), "Expected a uint32, but got something else");
-            return toVarintBytes(std::get<uint32_t>(attr), 4);
+            check(std::holds_alternative <uint32_t>(attr), "Expected a uint32, but got something else");
+            return toVarintBytes(std::get <uint32_t>(attr), 4);
         } else if (type == "uint64") {
-            check(std::holds_alternative<uint64_t>(attr), "Expected a uint64, but got something else");
-            return toVarintBytes(std::get<uint64_t>(attr), 8);
+            check(std::holds_alternative <uint64_t>(attr), "Expected a uint64, but got something else");
+            return toVarintBytes(std::get <uint64_t>(attr), 8);
 
         } else if (type == "fixed8" || type == "byte") {
-            check(std::holds_alternative<uint8_t>(attr), "Expected a uint8 (fixed8 / byte), but got something else");
-            return toIntBytes(std::get<uint8_t>(attr), 1);
+            check(std::holds_alternative <uint8_t>(attr), "Expected a uint8 (fixed8 / byte), but got something else");
+            return toIntBytes(std::get <uint8_t>(attr), 1);
         } else if (type == "fixed16") {
-            check(std::holds_alternative<uint16_t>(attr), "Expected a uint16 (fixed16), but got something else");
-            return toIntBytes(std::get<uint16_t>(attr), 2);
+            check(std::holds_alternative <uint16_t>(attr), "Expected a uint16 (fixed16), but got something else");
+            return toIntBytes(std::get <uint16_t>(attr), 2);
         } else if (type == "fixed32") {
-            check(std::holds_alternative<uint32_t>(attr), "Expected a uint32 (fixed32), but got something else");
-            return toIntBytes(std::get<uint32_t>(attr), 4);
+            check(std::holds_alternative <uint32_t>(attr), "Expected a uint32 (fixed32), but got something else");
+            return toIntBytes(std::get <uint32_t>(attr), 4);
         } else if (type == "fixed64") {
-            check(std::holds_alternative<uint64_t>(attr), "Expected a uint64 (fixed64), but got something else");
-            return toIntBytes(std::get<uint64_t>(attr), 8);
+            check(std::holds_alternative <uint64_t>(attr), "Expected a uint64 (fixed64), but got something else");
+            return toIntBytes(std::get <uint64_t>(attr), 8);
 
         } else if (type == "float") {
             check(std::holds_alternative <float>(attr), "Expected a float, but got something else");

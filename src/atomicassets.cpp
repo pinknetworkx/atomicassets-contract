@@ -606,7 +606,11 @@ ACTION atomicassets::mintasset(
     //It will throw if authorized_minter does not have a sufficient balance to pay for the backed tokens
     //Token validity must not be cross-checked with config.supported_tokens because it's implicitly checked
     //when decreasing minter's balance (only supported tokens can be deposited)
+    set <symbol> used_symbols = {};
     for (asset &token : tokens_to_back) {
+        check(used_symbols.find(token.symbol) == used_symbols.end(),
+            "Symbols in the tokens_to_back must be unique");
+        used_symbols.emplace(token.symbol);
         internal_back_asset(authorized_minter, new_asset_owner, asset_id, token);
     }
 }
@@ -1035,7 +1039,7 @@ ACTION atomicassets::payofferram(
 
     auto offer_itr = offers.require_find(offer_id,
         "No offer with this id exists");
-    
+
     offers_s offer_copy = *offer_itr;
 
     offers.erase(offer_itr);
