@@ -1,5 +1,5 @@
 # AtomicAssets
-AtomicAssets is a Non Fungible Token (NFT) standard for eosio blockchains developed by [pink.network](pink.network).
+AtomicAssets is a Non Fungible Token (NFT) standard for eosio blockchains developed by [pink.network](https://pink.network).
 
 It focuses heavily on RAM efficiency and usability.
 
