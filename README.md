@@ -5,9 +5,13 @@ It focuses heavily on RAM efficiency and usability.
 
 ### [Documentation can be found here.](https://github.com/pinknetworkx/atomicassets-contracts/wiki)
 
-> :warning: **Older eosio versions will think that the ABI is invalid**: The bug causing this was fixed in 1.8.10 / 2.0.0
-
-The code previously included a workaround for that. If you plan to use AtomicAssets with an earlier eosio version, you can use the previous workaround of using `#define` instead of `typedef` for the `ATTRIBUTE` type in the _atomicdata.hpp_
+## Useful links
+- API: https://github.com/pinknetworkx/eosio-contract-api
+- Live API example: https://wax.api.atomicassets.io/atomicmarket/docs/
+- Javascript module: https://www.npmjs.com/package/atomicassets
+- Test cases (using Hydra framework): https://github.com/pinknetworkx/atomicassets-contract-tests
+- AtomicMarket (open source marketplace): https://github.com/pinknetworkx/atomicmarket-contract
+- Telegram group: https://t.me/atomicassets
 
 ## Key Features
 
