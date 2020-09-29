@@ -7,7 +7,7 @@ It focuses heavily on RAM efficiency and usability.
 
 ## Useful links
 - API: https://github.com/pinknetworkx/eosio-contract-api
-- Live API example: https://wax.api.atomicassets.io/atomicmarket/docs/
+- Live API example: https://wax.api.atomicassets.io/atomicassets/docs/
 - Javascript module: https://www.npmjs.com/package/atomicassets
 - Test cases (using Hydra framework): https://github.com/pinknetworkx/atomicassets-contract-tests
 - AtomicMarket (open source marketplace): https://github.com/pinknetworkx/atomicmarket-contract
