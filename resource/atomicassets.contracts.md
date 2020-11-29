@@ -660,7 +660,7 @@ icon: https://atomicassets.io/image/logo256.png#108AEE3530F4EB368A4B0C28800894CF
 <div class="description">
 {{asset_owner}} burns his asset with the id {{asset_id}}.
 
-If there previously were core tokens backed for this asset, these core tokens are transferred to {{asset_owner}}.
+If there previously were tokens backed to this asset, these tokens are added to the balance table entry {{asset_owner}}.
 </div>
 
 <b>Clauses:</b>
