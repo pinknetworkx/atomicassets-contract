@@ -36,7 +36,7 @@ It focuses heavily on RAM efficiency and usability.
 
 	Smart Contracts can get notified automatically about any relevant events related to their assets. This enables them to make the assets an integral part of their game rather than just a static token.
 	
-- **Backing assets with Core Tokens**
+- **Backing assets with Fungible Tokens**
 
 	Assets can be backed by standard fungible tokens (e.g. EOS/ WAX). Those tokens can only be freed by burning the asset, thus allowing dapps to give their asset a guaranteed intrinsic value.
 	
