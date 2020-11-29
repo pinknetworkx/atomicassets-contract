@@ -799,26 +799,37 @@ ACTION atomicassets::burnasset(
         check(template_itr->burnable, "The asset is not burnable");
     };
 
-    config_s current_config = config.get();
+
+    // Any backed tokens are added to the asset_owners balance
+    // If the asset_owner does not have a balance table entry yet, a new one is created
+    auto balance_itr = balances.find(asset_owner.value);
+    if (balance_itr == balances.end()) {
+        balance_itr = balances.emplace(asset_owner, [&](auto &_balance) {
+            _balance.owner = asset_owner,
+            _balance.quantities = {};
+        });
+    }
+
+    vector <asset> quantities = balance_itr->quantities;
 
     for (asset backed_quantity : asset_itr->backed_tokens) {
-        for (extended_symbol supported_token : current_config.supported_tokens) {
-            if (supported_token.get_symbol() == backed_quantity.symbol) {
-                action(
-                    permission_level{get_self(), name("active")},
-                    supported_token.get_contract(),
-                    name("transfer"),
-                    make_tuple(
-                        get_self(),
-                        asset_owner,
-                        backed_quantity,
-                        string("Backed asset payout - ID: ") + to_string(asset_id)
-                    )
-                ).send();
+        bool found_token = false;
+        for (asset &token : quantities) {
+            if (token.symbol == backed_quantity.symbol) {
+                found_token = true;
+                token.amount += backed_quantity.amount;
                 break;
             }
         }
+        if (!found_token) {
+            quantities.push_back(backed_quantity);
+        }
     }
+        
+    balances.modify(balance_itr, asset_owner, [&](auto &_balance) {
+        _balance.quantities = quantities;
+    });
+
 
     schemas_t collection_schemas = get_schemas(asset_itr->collection_name);
     auto schema_itr = collection_schemas.find(asset_itr->schema_name.value);
@@ -1056,7 +1067,7 @@ ACTION atomicassets::payofferram(
 *  It handels deposits and adds the transferred tokens to the sender's balance table row
 */
 void atomicassets::receive_token_transfer(name from, name to, asset quantity, string memo) {
-    if (to != _self) {
+    if (to != get_self()) {
         return;
     }
 

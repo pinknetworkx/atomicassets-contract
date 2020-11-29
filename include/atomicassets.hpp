@@ -357,7 +357,7 @@ private:
 
     TABLE tokenconfigs_s {
         name        standard = name("atomicassets");
-        std::string version  = string("1.2.3");
+        std::string version  = string("1.3.0");
     };
     typedef singleton <name("tokenconfigs"), tokenconfigs_s>   tokenconfigs_t;
     // https://github.com/EOSIO/eosio.cdt/issues/280
