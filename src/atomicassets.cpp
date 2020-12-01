@@ -800,35 +800,37 @@ ACTION atomicassets::burnasset(
     };
 
 
-    // Any backed tokens are added to the asset_owners balance
-    // If the asset_owner does not have a balance table entry yet, a new one is created
-    auto balance_itr = balances.find(asset_owner.value);
-    if (balance_itr == balances.end()) {
-        balance_itr = balances.emplace(asset_owner, [&](auto &_balance) {
-            _balance.owner = asset_owner,
-            _balance.quantities = {};
-        });
-    }
+    if (asset_itr->backed_tokens.size() != 0) {
+        auto balance_itr = balances.find(asset_owner.value);
+        if (balance_itr == balances.end()) {
+            // If the asset_owner does not have a balance table entry yet, a new one is created
+            balances.emplace(asset_owner, [&](auto &_balance) {
+                _balance.owner = asset_owner,
+                _balance.quantities = asset_itr->backed_tokens;
+            });
+        } else {
+            // Any backed tokens are added to the asset_owners balance
+            vector <asset> quantities = balance_itr->quantities;
 
-    vector <asset> quantities = balance_itr->quantities;
-
-    for (asset backed_quantity : asset_itr->backed_tokens) {
-        bool found_token = false;
-        for (asset &token : quantities) {
-            if (token.symbol == backed_quantity.symbol) {
-                found_token = true;
-                token.amount += backed_quantity.amount;
-                break;
+            for (asset backed_quantity : asset_itr->backed_tokens) {
+                bool found_token = false;
+                for (asset &token : quantities) {
+                    if (token.symbol == backed_quantity.symbol) {
+                        found_token = true;
+                        token.amount += backed_quantity.amount;
+                        break;
+                    }
+                }
+                if (!found_token) {
+                    quantities.push_back(backed_quantity);
+                }
             }
-        }
-        if (!found_token) {
-            quantities.push_back(backed_quantity);
+
+            balances.modify(balance_itr, asset_owner, [&](auto &_balance) {
+                _balance.quantities = quantities;
+            });
         }
     }
-        
-    balances.modify(balance_itr, asset_owner, [&](auto &_balance) {
-        _balance.quantities = quantities;
-    });
 
 
     schemas_t collection_schemas = get_schemas(asset_itr->collection_name);
