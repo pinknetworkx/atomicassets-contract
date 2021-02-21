@@ -1,7 +1,7 @@
 # AtomicAssets
 AtomicAssets is a Non Fungible Token (NFT) standard for eosio blockchains developed by [pink.network](https://pink.network).
 
-It focuses heavily on RAM efficiency and usability.
+It offers a powerful feature set while keeping unnecessary complexity to a minimum and focusses on RAM efficiency.
 
 ### [Documentation can be found here.](https://github.com/pinknetworkx/atomicassets-contracts/wiki)
 
@@ -15,18 +15,21 @@ It focuses heavily on RAM efficiency and usability.
 
 ## Key Features
 
-- **Presets**
+- **Powerful structure**
 
-	Assets have presets, which can store data themselves. This allows grouping similar assets together and means that you can save RAM by not having to store the same data for each asset individually.
+	NFTs are grouped by collections rather than their author, which allows for flexible authorizations. \
+	Schemas give NFTs an extensible data structure, which is used for the serialization. \
+	Templates store data and can be referenced by assets. This allows grouping similar assets together and saving RAM by not having to store the same data for each asset individually. Templates can also make NFTs non-transferable or non-burnable. \
+	Assets always belong to a collection and a schema, and can optionally reference a template.
 	
 - **Data Serialization**
 
-	AtomicAssets uses a custom built serialization, which significantly reduces RAM costs compared to traditional methods (e.g. JSON strings). Serialization is done within the contract, which guarantees that no corrupt data enters the blockchain.
+	AtomicAssets uses a custom built serialization inspired by Protobuf, which significantly reduces RAM costs compared to traditional methods (e.g. JSON strings). Serialization is done within the contract, which guarantees that no corrupt data enters the blockchain state.
 	
 - **No RAM Costs for users**
 
 	The RAM cost is paid fully by the dapps that create the assets. Even when transfering assets, this stays the same. The maximum an end user will ever have to pay are 112 bytes for their own scope, and even that will likely only rarely be necessary.
-	This also means that AtomicAssets works completely **without claims**. Transfers are instant and no further user action is required.
+	This also means that AtomicAssets works **without claims**. Transfers are instant and no further user action is required.
 	
 - **Minimal fixed RAM costs**
 
@@ -38,7 +41,7 @@ It focuses heavily on RAM efficiency and usability.
 	
 - **Backing assets with Fungible Tokens**
 
-	Assets can be backed by standard fungible tokens (e.g. EOS/ WAX). Those tokens can only be freed by burning the asset, thus allowing dapps to give their asset a guaranteed intrinsic value.
+	Assets can be backed by standard fungible tokens (e.g. EOS / WAX). Those tokens can only be freed by burning the asset, thus allowing dapps to give their asset a guaranteed intrinsic value.
 	
 - **Powerful Trade Offers**
 
