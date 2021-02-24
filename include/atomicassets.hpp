@@ -251,6 +251,42 @@ public:
         name asset_ram_payer
     );
 
+    // static actions
+    using init_action = eosio::action_wrapper<"init"_n, &atomicassets::init>;
+    using admincoledit_action = eosio::action_wrapper<"admincoledit"_n, &atomicassets::admincoledit>;
+    using setversion_action = eosio::action_wrapper<"setversion"_n, &atomicassets::setversion>;
+    using addconftoken_action = eosio::action_wrapper<"addconftoken"_n, &atomicassets::addconftoken>;
+    using transfer_action = eosio::action_wrapper<"transfer"_n, &atomicassets::transfer>;
+    using createcol_action = eosio::action_wrapper<"createcol"_n, &atomicassets::createcol>;
+    using setcoldata_action = eosio::action_wrapper<"setcoldata"_n, &atomicassets::setcoldata>;
+    using addcolauth_action = eosio::action_wrapper<"addcolauth"_n, &atomicassets::addcolauth>;
+    using remcolauth_action = eosio::action_wrapper<"remcolauth"_n, &atomicassets::remcolauth>;
+    using addnotifyacc_action = eosio::action_wrapper<"addnotifyacc"_n, &atomicassets::addnotifyacc>;
+    using remnotifyacc_action = eosio::action_wrapper<"remnotifyacc"_n, &atomicassets::remnotifyacc>;
+    using setmarketfee_action = eosio::action_wrapper<"setmarketfee"_n, &atomicassets::setmarketfee>;
+    using forbidnotify_action = eosio::action_wrapper<"forbidnotify"_n, &atomicassets::forbidnotify>;
+    using createschema_action = eosio::action_wrapper<"createschema"_n, &atomicassets::createschema>;
+    using extendschema_action = eosio::action_wrapper<"extendschema"_n, &atomicassets::extendschema>;
+    using createtempl_action = eosio::action_wrapper<"createtempl"_n, &atomicassets::createtempl>;
+    using locktemplate_action = eosio::action_wrapper<"locktemplate"_n, &atomicassets::locktemplate>;
+    using mintasset_action = eosio::action_wrapper<"mintasset"_n, &atomicassets::mintasset>;
+    using setassetdata_action = eosio::action_wrapper<"setassetdata"_n, &atomicassets::setassetdata>;
+    using announcedepo_action = eosio::action_wrapper<"announcedepo"_n, &atomicassets::announcedepo>;
+    using withdraw_action = eosio::action_wrapper<"withdraw"_n, &atomicassets::withdraw>;
+    using backasset_action = eosio::action_wrapper<"backasset"_n, &atomicassets::backasset>;
+    using burnasset_action = eosio::action_wrapper<"burnasset"_n, &atomicassets::burnasset>;
+    using createoffer_action = eosio::action_wrapper<"createoffer"_n, &atomicassets::createoffer>;
+    using canceloffer_action = eosio::action_wrapper<"canceloffer"_n, &atomicassets::canceloffer>;
+    using acceptoffer_action = eosio::action_wrapper<"acceptoffer"_n, &atomicassets::acceptoffer>;
+    using declineoffer_action = eosio::action_wrapper<"declineoffer"_n, &atomicassets::declineoffer>;
+    using payofferram_action = eosio::action_wrapper<"payofferram"_n, &atomicassets::payofferram>;
+    using logtransfer_action = eosio::action_wrapper<"logtransfer"_n, &atomicassets::logtransfer>;
+    using lognewoffer_action = eosio::action_wrapper<"lognewoffer"_n, &atomicassets::lognewoffer>;
+    using lognewtempl_action = eosio::action_wrapper<"lognewtempl"_n, &atomicassets::lognewtempl>;
+    using logmint_action = eosio::action_wrapper<"logmint"_n, &atomicassets::logmint>;
+    using logsetdata_action = eosio::action_wrapper<"logsetdata"_n, &atomicassets::logsetdata>;
+    using logbackasset_action = eosio::action_wrapper<"logbackasset"_n, &atomicassets::logbackasset>;
+    using logburnasset_action = eosio::action_wrapper<"logburnasset"_n, &atomicassets::logburnasset>;
 
 private:
 
