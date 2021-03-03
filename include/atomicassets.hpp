@@ -251,9 +251,6 @@ public:
         name asset_ram_payer
     );
 
-
-private:
-
     TABLE collections_s {
         name             collection_name;
         name             author;
@@ -370,6 +367,7 @@ private:
     config_t       config       = config_t(get_self(), get_self().value);
     tokenconfigs_t tokenconfigs = tokenconfigs_t(get_self(), get_self().value);
 
+private:
 
     void internal_transfer(
         name from,
