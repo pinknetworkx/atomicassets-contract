@@ -1294,12 +1294,12 @@ void atomicassets::internal_transfer(
             });
         }
 
-        to_assets.emplace(asset_itr->ram_payer, [&](auto &_asset) {
+        to_assets.emplace(from, [&](auto &_asset) {
             _asset.asset_id = asset_itr->asset_id;
             _asset.collection_name = asset_itr->collection_name;
             _asset.schema_name = asset_itr->schema_name;
             _asset.template_id = asset_itr->template_id;
-            _asset.ram_payer = asset_itr->ram_payer;
+            _asset.ram_payer = from;
             _asset.backed_tokens = asset_itr->backed_tokens;
             _asset.immutable_serialized_data = asset_itr->immutable_serialized_data;
             _asset.mutable_serialized_data = asset_itr->mutable_serialized_data;
