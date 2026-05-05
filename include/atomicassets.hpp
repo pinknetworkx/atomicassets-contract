@@ -1,11 +1,11 @@
-#include <eosio/eosio.hpp>
-#include <eosio/singleton.hpp>
-#include <eosio/asset.hpp>
+#include <sysio/sysio.hpp>
+#include <sysio/singleton.hpp>
+#include <sysio/asset.hpp>
 
 #include <checkformat.hpp>
 #include <atomicdata.hpp>
 
-using namespace eosio;
+using namespace sysio;
 using namespace std;
 using namespace atomicdata;
 
@@ -178,7 +178,7 @@ public:
         uint64_t offer_id
     );
 
-    [[eosio::on_notify("*::transfer")]] void receive_token_transfer(
+    [[sysio::on_notify("*::transfer")]] void receive_token_transfer(
         name from,
         name to,
         asset quantity,
@@ -345,22 +345,39 @@ private:
 
 
     TABLE config_s {
-        uint64_t                 asset_counter     = 1099511627776; //2^40
-        int32_t                  template_counter  = 1;
-        uint64_t                 offer_counter     = 1;
-        vector <FORMAT>          collection_format = {};
-        vector <extended_symbol> supported_tokens  = {};
+        config_s() :
+            asset_counter(1099511627776), //2^40
+            template_counter(1),
+            offer_counter(1),
+            collection_format(),
+            supported_tokens()
+        {}
+
+        uint64_t                 asset_counter;
+        int32_t                  template_counter;
+        uint64_t                 offer_counter;
+        vector <FORMAT>          collection_format;
+        vector <extended_symbol> supported_tokens;
+
+        SYSLIB_SERIALIZE(config_s, (asset_counter)(template_counter)(offer_counter)(collection_format)(supported_tokens))
     };
     typedef singleton <name("config"), config_s>               config_t;
-    // https://github.com/EOSIO/eosio.cdt/issues/280
+    // https://github.com/sysio/sysio.cdt/issues/280
     typedef multi_index <name("config"), config_s>             config_t_for_abi;
 
     TABLE tokenconfigs_s {
-        name        standard = name("atomicassets");
-        std::string version  = string("1.3.1");
+        tokenconfigs_s() :
+            standard(name("atomicassets")),
+            version(string("1.3.1"))
+        {}
+
+        name        standard;
+        std::string version;
+
+        SYSLIB_SERIALIZE(tokenconfigs_s, (standard)(version))
     };
     typedef singleton <name("tokenconfigs"), tokenconfigs_s>   tokenconfigs_t;
-    // https://github.com/EOSIO/eosio.cdt/issues/280
+    // https://github.com/sysio/sysio.cdt/issues/280
     typedef multi_index <name("tokenconfigs"), tokenconfigs_s> tokenconfigs_t_for_abi;
 
 

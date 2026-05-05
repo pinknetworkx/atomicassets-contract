@@ -7,17 +7,17 @@ and custom data types.
 */
 
 
-#include <eosio/eosio.hpp>
-#include <eosio/singleton.hpp>
-#include <eosio/asset.hpp>
+#include <sysio/sysio.hpp>
+#include <sysio/singleton.hpp>
+#include <sysio/asset.hpp>
 
-using namespace eosio;
+using namespace sysio;
 using namespace std;
 
 namespace atomicassets {
     static constexpr double MAX_MARKET_FEE = 0.15;
 
-    static constexpr name ATOMICASSETS_ACCOUNT = name("atomicassets");
+    static constexpr name ATOMICASSETS_ACCOUNT = name("sysio.nft");
 
     //Custom vector types need to be defined because otherwise a bug in the ABI serialization
     //would cause the ABI to be invalid

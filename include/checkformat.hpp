@@ -1,9 +1,9 @@
-#include <eosio/eosio.hpp>
+#include <sysio/sysio.hpp>
 #include <algorithm>
 
 #include <atomicdata.hpp>
 
-using namespace eosio;
+using namespace sysio;
 using namespace std;
 using namespace atomicdata;
 

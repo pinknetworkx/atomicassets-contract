@@ -1,9 +1,9 @@
 #pragma once
 
-#include <eosio/eosio.hpp>
+#include <sysio/sysio.hpp>
 #include "base58.hpp"
 
-using namespace eosio;
+using namespace sysio;
 using namespace std;
 
 namespace atomicdata {

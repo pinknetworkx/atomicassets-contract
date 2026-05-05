@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-//(Slightly modified for the needs of our eosio contract)
+//(Slightly modified for the needs of our sysio contract)
 
 #include <string>
 #include <vector>

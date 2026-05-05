@@ -673,7 +673,7 @@ ACTION atomicassets::setassetdata(
 * This action needs to be called before transferring (depositing) any tokens to the AtomicAssets smart contract,
 * in order to pay for the RAM that otherwise would have to be paid by the AtomicAssets smart contract
 *
-* To pass a symbol to eosio as a string, use the following format: <precision>,<symbol_code>
+* To pass a symbol to sysio as a string, use the following format: <precision>,<symbol_code>
 * So for example: "8,WAX"
 *
 * @required_auth owner

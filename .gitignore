@@ -1,5 +1,8 @@
 *.abi
 *.wasm
+atomicassets/*.actions.cpp
+atomicassets/*.dispatch.cpp
+atomicassets/*.desc
 .eosproj
 .DS_STORE
 
