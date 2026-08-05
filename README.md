@@ -1,4 +1,18 @@
 # AtomicAssets
+
+> **This repository is archived.** Development of the AtomicAssets contract continues at
+> [atomicassets/atomicassets-contract](https://github.com/atomicassets/atomicassets-contract), which
+> carries the full history of this repository including its `v1` tags.
+>
+> The current release there is
+> [v2.0.0](https://github.com/atomicassets/atomicassets-contract/releases/tag/v2.0.0). The code in
+> this repository is the v1 line, which is what remains deployed on mainnet until the v2
+> upgrade is executed.
+>
+> Stewardship of the AtomicAssets standard passed from Pink Network to Spielworks and then to
+> FACINGS. See
+> [AUTHORS.md](https://github.com/atomicassets/atomicassets-contract/blob/main/AUTHORS.md).
+
 AtomicAssets is a Non Fungible Token (NFT) standard for eosio blockchains developed by [pink.network](https://pink.network).
 
 It offers a powerful feature set while keeping unnecessary complexity to a minimum and focusses on RAM efficiency.
